@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2022 ValorPay. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <valorpay_gateway>
+                <active>0</active>
+                <model>ValorPay\CardPay\Model\Payment</model>
+                <order_status>processing</order_status>
+                <payment_action>authorize_capture</payment_action>
+                <title>ValorPay</title>
+                <sandbox>1</sandbox>
+                <debug>0</debug>
+                <currency>USD</currency>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_void>1</can_void>
+                <can_use_checkout>1</can_use_checkout>
+                <is_gateway>1</is_gateway>
+                <sort_order>1</sort_order>
+                <appid></appid>
+                <appkey></appkey>
+                <epi></epi>
+                <appid backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <appkey backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <epi backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <payment_action></payment_action>
+                <allowspecific>0</allowspecific>
+                <specificcountry></specificcountry>
+                <surchargeIndicator>0</surchargeIndicator>
+                <surchargeType>percentage</surchargeType>
+                <avs_type></avs_type>
+                <surchargeLabel></surchargeLabel>
+                <surchargePercentage>0</surchargePercentage>
+                <surchargeFlatRate>0</surchargeFlatRate>
+                <fee>0</fee>
+                <cctypes>AE,VI,MC,DI,JCB,DN</cctypes>
+            </valorpay_gateway>
+        </payment>
+    </default>
+</config>
