@@ -17,7 +17,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_code = self::PAYMENT_METHOD_VALORPAY_GATEWAY_CODE;
     
     protected $_curl;
-    protected $_valor_api_url = 'http://localhost:7000/v1/payment';
+    protected $_valor_api_url = 'https://valorapitest.vaminfosys.com/v1/payment';
+    protected $_valor_refund_api_url = 'https://valorapitest.vaminfosys.com/v1/refundpayment';
+    
     protected $_remoteAddress;	
     protected $_orderRepository;
     protected $_isGateway                   = true;
@@ -27,10 +29,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_canRefundInvoicePartial     = true;
 
     protected $_countryFactory;
-    protected $_request;	
-    protected $_minAmount = null;
-    protected $_maxAmount = null;
-    protected $_supportedCurrencyCodes = array('USD');
+    protected $_request;
+    protected $_data;
     
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
@@ -65,6 +65,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             null,
             $data
         );
+	
+	$this->_data = $data;
 	
 	$this->_request = $request;
 	
@@ -116,7 +118,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             }
             
             $amount = $amount - $surchargeAmount;
-        
+            
+            $avs_zipcode = $payment->getAdditionalInformation("avs_zipcode");
+	    $avs_address = $payment->getAdditionalInformation("avs_address");
+	    	    
+	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
+            $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+            
             $requestData = array(
 		'appid' => $this->getConfigData('appid'),
 		'appkey' => $this->getConfigData('appkey'),
@@ -131,11 +139,11 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'ip' => $this->_remoteAddress->getRemoteAddress(),
 		'surchargeIndicator' => $surchargeIndicator,
 		'surchargeAmount' => $surchargeAmount,
-		'address1' => $billing->getStreetLine(1),
+		'address1' => $valor_avs_street,
 		'address2' => $billing->getStreetLine(2),
 		'city' => $billing->getCity(),
 		'state' => $billing->getRegion(),
-		'zip' => $billing->getPostcode(),
+		'zip' => $valor_avs_zip,
 		'billing_country' => $billing->getCountryId(),
 		'shipping_country' => $shipping->getCountryId(),
 		'cardnumber' => $payment->getCcNumber(),
@@ -167,9 +175,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    }
 	    elseif( $response->status == "error" ) {
-	    
-	    	throw new \Magento\Framework\Validator\Exception(__($response->mesg));
-	    
+	    	
+	    	$error_message = $response->mesg;
+		if( isset($response->desc) )
+	    		$error_message .= " ".$response->desc;
+	    	
+	    	throw new \Magento\Framework\Validator\Exception(__($error_message));
+	    	
 	    }
 	    
             $payment
@@ -215,14 +227,14 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        
-        /** @var \Magento\Sales\Model\Order $order */
+	
+	/** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
 
         /** @var \Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
         $shipping = $order->getShippingAddress();
-
+	    
         try {
 	    
 	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
@@ -243,7 +255,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             }
             
             $amount = $amount - $surchargeAmount;
-        
+            
+            $avs_zipcode = $payment->getAdditionalInformation("avs_zipcode");
+            $avs_address = $payment->getAdditionalInformation("avs_address");
+	    
+	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
+            $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+            
             $requestData = array(
 		'appid' => $this->getConfigData('appid'),
 		'appkey' => $this->getConfigData('appkey'),
@@ -258,11 +276,11 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'ip' => $this->_remoteAddress->getRemoteAddress(),
 		'surchargeIndicator' => $surchargeIndicator,
 		'surchargeAmount' => $surchargeAmount,
-		'address1' => $billing->getStreetLine(1),
+		'address1' => $valor_avs_street,
 		'address2' => $billing->getStreetLine(2),
 		'city' => $billing->getCity(),
 		'state' => $billing->getRegion(),
-		'zip' => $billing->getPostcode(),
+		'zip' => $valor_avs_zip,
 		'billing_country' => $billing->getCountryId(),
 		'shipping_country' => $shipping->getCountryId(),
 		'cardnumber' => $payment->getCcNumber(),
@@ -294,8 +312,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    }
 	    elseif( $response->status == "error" ) {
-	    
-	    	throw new \Magento\Framework\Validator\Exception(__($response->mesg));
+	    	
+	    	$error_message = $response->mesg;
+		if( isset($response->desc) )
+	    		$error_message .= " ".$response->desc;
+	    		
+	    	throw new \Magento\Framework\Validator\Exception(__($error_message));
 	    
 	    }
 	    
@@ -324,7 +346,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    $this->_orderRepository->save($order);   
 
         } catch (\Exception $e) {
-            $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
+            if( isset($requestData) ) $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment capturing error. '.$e->getMessage()));
             throw new \Magento\Framework\Validator\Exception(__('Payment capturing error. '.$e->getMessage()));
         }
@@ -377,7 +399,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    );
 
 	    $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	    $this->_curl->post($this->_valor_api_url, $requestData);
+	    $this->_curl->post($this->_valor_refund_api_url, $requestData);
 
 	    //response will contain the output of curl request
 	    $response = $this->_curl->getBody();
@@ -398,8 +420,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
 	    }
 	    elseif( $response->status == "error" ) {
-
-		throw new \Magento\Framework\Validator\Exception(__($response->mesg));
+		
+		$error_message = $response->mesg;
+		if( isset($response->desc) )
+	    		$error_message .= " ".$response->desc;
+	    		
+		throw new \Magento\Framework\Validator\Exception(__($error_message));
 	    	    
 	    }
 	    
@@ -449,18 +475,5 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
         return parent::isAvailable($quote);
     }
-
-    /**
-     * Availability for currency
-     *
-     * @param string $currencyCode
-     * @return bool
-     */
-    public function canUseForCurrency($currencyCode)
-    {
-        if (!in_array($currencyCode, $this->_supportedCurrencyCodes)) {
-            return false;
-        }
-        return true;
-    }
+    
 }

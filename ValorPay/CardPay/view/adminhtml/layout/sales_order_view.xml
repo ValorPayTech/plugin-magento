@@ -6,5 +6,8 @@
         <referenceBlock name="order_totals">
             <block class="ValorPay\CardPay\Block\Adminhtml\Sales\Order\Totals" name="valorpay_gateway_fee" as="valorpay_gateway_fee"/>
         </referenceBlock>
+        <referenceContainer name="payment_additional_info">
+	    <block class="ValorPay\CardPay\Block\Adminhtml\Sales\Order\Payment" name="valorpay_gateway_info" template="ValorPay_CardPay::info/valorpayinfo.phtml" />
+	</referenceContainer>
     </body>
 </page>

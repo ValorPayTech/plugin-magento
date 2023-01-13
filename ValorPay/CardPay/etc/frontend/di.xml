@@ -7,19 +7,19 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     
-    <virtualType name="ValorPay\CardPay\Model\ConfigProvider" type="Magento\Payment\Model\CcGenericConfigProvider">
-            <arguments>
-                <argument name="methodCodes" xsi:type="array">
-                    <item name="valorpay_gateway" xsi:type="const">ValorPay\CardPay\Model\Ui\ConfigProvider::CODE</item>
-                </argument>
-                <argument name="methodCode" xsi:type="const">\ValorPay\CardPay\Model\Ui\ConfigProvider::CODE</argument>
-            </arguments>
-    </virtualType>
+    <type name="ValorPay\CardPay\Model\Ui\ConfigProvider">
+        <arguments>
+	    <argument name="methodCodes" xsi:type="array">
+	    	<item name="valorpay_gateway" xsi:type="const">ValorPay\CardPay\Model\Ui\ConfigProvider::CODE</item>
+	    </argument>
+        </arguments>
+    </type>
     
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="valorpay_gateway_config_provider" xsi:type="object">ValorPay\CardPay\Model\ConfigProvider</item>
+                <item name="ccform" xsi:type="object">ValorPay\CardPay\Model\Ui\ConfigProvider</item>
+                <item name="cc_card_config_provider" xsi:type="object">Magento\Payment\Model\CcConfigProvider</item>
             </argument>
         </arguments>
     </type>

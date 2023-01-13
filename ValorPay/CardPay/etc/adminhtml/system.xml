@@ -11,30 +11,32 @@
             <group id="valorpay_gateway" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>ValorPay</label>
                 <comment>The ValorPay Payment Gateway enables merchants to accept credit card online during checkout.</comment>
-                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Enable ValorPos</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Title</label>
                 </field>
-		<field id="sandbox" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+		<field id="sandbox" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="1">
 		  <label>Use Sandbox</label>
 		  <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+		  <comment><![CDATA[Set No if Production Keys are set OR Set Yes if Sandbox Keys are set then Live payments will not be taken.]]></comment>
 		</field>
-                <field id="order_status" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                <field id="order_status" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="1" canRestore="1">
 		  <label>New Order Status</label>
 		  <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
                 </field>
-                <field id="appid" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="appid" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>APP ID</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Please read <a href="https://valorpaytech.com/kb/generating-api-keys-e-commerce/" target="_blank">Valorpaytech Generating API KEYS ECommerce Guideline</a>]]></comment>
                 </field>
-                <field id="appkey" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="appkey" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>APP KEY</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
-                <field id="epi" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="epi" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>EPI</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
@@ -54,33 +56,42 @@
                     <label>Sort Order</label>
                     <frontend_class>validate-number</frontend_class>
                 </field>
-		<field id="surchargeIndicator" translate="label" type="select" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="0">
+		<field id="surchargeIndicator" translate="label" type="select" sortOrder="180" showInDefault="1" showInWebsite="0" showInStore="1">
 		  <label>Surcharge Mode</label>
 		  <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+		  <comment><![CDATA[Set YES only if you want all transactions to be fall on surcharge mode, Merchant must have got an Surcharge MID inorder to work.]]></comment>
 		</field>
-		<field id="surchargeType" translate="label" type="select" sortOrder="190" showInDefault="1" showInWebsite="1" showInStore="0">
+		<field id="surchargeType" translate="label" type="select" sortOrder="190" showInDefault="1" showInWebsite="0" showInStore="1">
 		  <label>Surcharge Type</label>
                   <source_model>ValorPay\CardPay\Model\Adminhtml\Source\SurchargeType</source_model>
 		</field>
 		<field id="avs_type" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="0">
 		  <label>AVS</label>
                   <source_model>ValorPay\CardPay\Model\Adminhtml\Source\AVSType</source_model>
+                  <comment><![CDATA[The address verification service will add a text field to the checkout page based on the above option.]]></comment>
 		</field>
-                <field id="surchargeLabel" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="surchargeLabel" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>Surcharge Label</label>
                 </field>
-		<field id="surchargePercentage" translate="label" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
+		<field id="surchargePercentage" translate="label" type="text" sortOrder="220" showInDefault="1" showInWebsite="0" showInStore="1">
 		  <label>Surcharge %</label>
 		  <frontend_class>validate-number</frontend_class>
+		  <comment><![CDATA[Percentage will apply only on enabling on surcharge Indicator to true and Surcharge type is set fo Surcharge %]]></comment>
 		</field>
-		<field id="surchargeFlatRate" translate="label" type="text" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="0">
+		<field id="surchargeFlatRate" translate="label" type="text" sortOrder="230" showInDefault="1" showInWebsite="0" showInStore="1">
 		  <label>Flat Rate $</label>
 		  <frontend_class>validate-number</frontend_class>
+		  <comment><![CDATA[Flat rate will apply only on if Enable surcharge mode is true and Surcharge type is set to Flat Rate $]]></comment>
 		</field>
 		<field id="cctypes" translate="label" type="multiselect" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Accepted Cards</label>
                     <source_model>ValorPay\CardPay\Model\Source\Cctype</source_model>
                 </field>
+		<field id="show_logo" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+		  <label>Show Logo</label>
+		  <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+		  <comment><![CDATA[Set Yes to show logo at checkout page OR Set No to show only title while selecting payment method.]]></comment>
+		</field>
             </group>
         </section>
     </system>

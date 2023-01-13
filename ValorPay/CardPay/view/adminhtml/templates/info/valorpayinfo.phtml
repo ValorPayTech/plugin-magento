@@ -1,0 +1,15 @@
+<?php
+$additionalInformation = $block->getAdditionalInformation();
+?>
+<?php if (!empty($additionalInformation)) : ?>
+<table style="margin-top:10px;" class="data-table admin__table-secondary">
+    <?php foreach ($additionalInformation as $label => $value) :?>
+        <tr>
+            <th><?php echo $block->escapeHtml(__($label))?>:</th>
+            <td style="text-align:right;">
+                <?php /* @noEscape */ echo nl2br($block->escapeHtml(implode("\n", $block->getValueAsArray($value, true))));?>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</table>
+<?php endif;?>

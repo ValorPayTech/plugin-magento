@@ -1,24 +1,58 @@
-{
-    "name": "magento/module-cardpay",
+    {
+    "name": "valorpay/plugin-magento",
     "description": "ValorpayTech Payment Gateway module for Magento",
     "require": {
         "php": "~5.5.0|~5.6.0|~7.0.0",
-        "magento/module-sales": "100.0.*",
-        "magento/module-checkout": "100.0.*",
-        "magento/module-payment": "100.0.*",
-        "magento/framework": "100.0.*",
-        "magento/magento-composer-installer": "100.0.*"
+        "magento/module-sales": "*",
+        "magento/module-checkout": "*",
+        "magento/module-payment": "*",
+        "magento/framework": "*",
+        "magento/magento-composer-installer": "*"
     },
     "type": "magento2-module",
-    "version": "100.0.3",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
+    "version": "1.0.0",
+    "license": ["MIT"],
+	"authors": [
+	  {
+		  "name": "ValorPayTech",
+		  "email": "webmaster@valorpaytech.com",
+		  "homepage": "https://valorpaytech.com/"
+	  }
+	],
+    "keywords": [
+      "valor",
+      "valorpay",
+      "valorpaytech",
+      "ecomcharge",
+      "bepaid",
+      "magento2_module",
+      "magento2_payment_module",
+      "payment_gateway",
+      "magento2_payment_gateway",
+      "payment_processing",
+      "magento2_payment_processing",
+      "e-commerce",
+      "visa",
+      "mastercard",
+      "american_express",
+      "discover",
+      "jcb",
+      "diners",
+      "debit_card",
+      "credit_card",
+      "authorize",
+      "capture",
+      "recurring",
+      "refund",
+      "void",
+      "3d-secure",
+      "fraud",
+      "chargeback"
     ],
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4": {
-            "Magento\\ValorPayCardPay\\": ""
+            "ValorPay\\CardPay\\": ""
         }
     }
 }

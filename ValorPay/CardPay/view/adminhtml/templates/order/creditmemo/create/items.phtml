@@ -136,14 +136,16 @@ $commentText = $block->getCreditmemo()->getCommentText();
                 <div class="actions">
                     <?= $block->getChildHtml('submit_offline') ?>
                     <?= $block->getChildHtml('submit_button') ?>
-                    <input class="admin__control-text submit-otp" placeholder="Enter OTP" style="display:none;" name="creditmemo[refund_otp_no]" id="refund_otp_no" value="" type="text" />
+                    <input class="admin__control-text submit-otp" placeholder="<?php echo __("Enter OTP"); ?>" style="display:none;" name="creditmemo[refund_otp_no]" id="refund_otp_no" value="" type="text" />
                     <input type="hidden" name="creditmemo[uuid]" id="uuid" value="">
                     <button title="Submit" type="button" style="display:none;" onClick="submitOTPCreditMemo()" class="action-default scalable save submit-otp primary">
-		        <span>Submit</span>
+		        <span><?php echo __("Submit"); ?></span>
 		    </button>
 		    <button title="Submit" type="button" style="display:none;" onClick="cancelRefund()" class="action-default scalable save submit-otp default">
-		        <span>Cancel</span>
+		        <span><?php echo __("Cancel"); ?></span>
 		    </button>
+		    <a name="otpsend"></a>
+		    <br class="submit-otp" style="display:none;" /><a href="#otpsend" class="submit-otp" style="display:none;float:right;margin-right:25px;margin-top:10px;" onClick="resendOTPCreditMemo()"><?php echo __("Resend OTP"); ?></a>
                     <?= $block->getChildHtml('submit_after') ?>
                 </div>
                 <p id="optresponse" class="submit-otp" style="float:right;margin-top:30px;"></p>
@@ -202,6 +204,41 @@ cancelRefund = function() {
     jQuery('.submit-otp').hide();
     document.getElementById("optresponse").innerHTML = "";
 }
+
+resendOTPCreditMemo = function() {
+    
+    document.getElementById("optresponse").innerHTML = 'RESENDMESSAGE';
+    
+    jQuery.ajax({
+            url: "OTPURL",
+	    type: "POST",
+	    data: jQuery("#edit_form").serialize(),
+	    success: function(response) {
+	    	var tjson = response;
+		if( tjson.error ) {
+			enableButtons(submitButtons)
+			alert(tjson.message);
+		} else {
+			document.getElementById("uuid").value = tjson.uuid;
+			var creditMemoOffline = jQuery('#creditmemo_do_offline');
+			if (creditMemoOffline.length) {
+				creditMemoOffline.prop('value', 0);
+			}
+			if( tjson.is_enable_2fa ) {
+				document.getElementById("optresponse").innerHTML = tjson.message;
+				jQuery('.refund').hide();
+				jQuery('.submit-otp').show();
+			}
+			else {
+				// Temporary solution will be replaced after refactoring order functionality
+				jQuery('#edit_form').triggerHandler('save');			
+			}
+    		}
+	    }
+    });
+
+};
+
 
 submitCreditMemo = function() {
     
@@ -292,6 +329,7 @@ $creditmemo_id = $this->getRequest()->getParam('creditmemo_id');
 $otp_url = $this->getUrl("valorpayrefund/SendOtp",["order_id"=>$order_id,"invoice_id"=>$invoice_id,"creditmemo_id"=>$creditmemo_id]);
 
 $scriptString = str_replace("OTPURL",$otp_url,$scriptString);
+$scriptString = str_replace("RESENDMESSAGE",__("Resending otp ..."),$scriptString);
 
 /* @noEscape */ 
 echo $secureRenderer->renderTag('script', [], $scriptString, false);

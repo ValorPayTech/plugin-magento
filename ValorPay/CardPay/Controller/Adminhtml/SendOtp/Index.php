@@ -17,7 +17,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     
     protected $_scopeConfig;
     
-    protected $_valor_api_url = 'http://localhost:7000/v1/sendotp';
+    protected $_valor_api_url = 'https://valorapitest.vaminfosys.com/v1/sendotp';
     
     public function __construct(
     	\Magento\Backend\App\Action\Context $context,

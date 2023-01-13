@@ -21,7 +21,7 @@ class Cc extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * @var string
      */
-    protected $_formBlockType = \Magento\Payment\Block\Form\Cc::class;
+    protected $_formBlockType = \ValorPay\CardPay\Block\Form\Cc::class;
 
     /**
      * @var string
@@ -379,4 +379,5 @@ class Cc extends \Magento\Payment\Model\Method\AbstractMethod
     {
         return $this->getConfigData('cctypes', $quote ? $quote->getStoreId() : null) && parent::isAvailable($quote);
     }
+    
 }

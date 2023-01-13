@@ -10,11 +10,12 @@
         <payment>
             <valorpay_gateway>
                 <active>0</active>
-                <model>ValorPay\CardPay\Model\Payment</model>
+                <model>ValorpayPaymentGatewayFacade</model>
                 <order_status>processing</order_status>
                 <payment_action>authorize_capture</payment_action>
                 <title>ValorPay</title>
                 <sandbox>1</sandbox>
+                <show_logo>1</show_logo>
                 <debug>0</debug>
                 <currency>USD</currency>
                 <can_authorize>1</can_authorize>
@@ -29,7 +30,6 @@
                 <appid backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <appkey backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <epi backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <payment_action></payment_action>
                 <allowspecific>0</allowspecific>
                 <specificcountry></specificcountry>
                 <surchargeIndicator>0</surchargeIndicator>
@@ -38,7 +38,6 @@
                 <surchargeLabel></surchargeLabel>
                 <surchargePercentage>0</surchargePercentage>
                 <surchargeFlatRate>0</surchargeFlatRate>
-                <fee>0</fee>
                 <cctypes>AE,VI,MC,DI,JCB,DN</cctypes>
             </valorpay_gateway>
         </payment>
