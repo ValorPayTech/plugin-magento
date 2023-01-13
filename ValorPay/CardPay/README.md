@@ -51,7 +51,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
 
 ## Installation (manual)
 
-  * [Download the Payment Module archive](https://github.com/valorpay/magento2-payment-module/archive/master.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
+  * [Download the Payment Module archive](https://github.com/valorpay/plugin-magento/archive/master.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
 
   * Enable Payment Module
 
@@ -66,7 +66,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
   * Deploy Magento Static Content (__Execute If needed__)
 
     ```sh
-    $ php bin/magento setup:static-content:deploy en_US    
+    $ php bin/magento setup:static-content:deploy     
     OR
     $ php bin/magento setup:static-content:deploy -f 
 
@@ -83,7 +83,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
   * If the Payment Module Panel ```ValorPay``` is not visible in the list of available Payment Methods,
     go to  ```System``` -> ```Cache Management``` and clear Magento Cache by clicking on ```Flush Magento Cache```
   * Go back to ```Payment Methods``` and click the button ```Configure``` under the payment method ```ValorPay POS``` to expand the available settings
-  * Set ```Enabled``` to ```Yes```, set the correct credentials, select your prefered transaction types and additional settings and click ```Save config```
+  * Set ```Enabled``` to ```Yes```, set the correct credentials, select your prefered payment method and additional settings and click ```Save config```
 
 ## Test data
 
@@ -99,15 +99,15 @@ If you setup the module with default values, you can use the test data to make a
 
 Use the following test cards to make successful test payment:
 
-  * Test Cards: 
-    Visa - 4012881888818888- CVV 999
-    Master- 5146315000000055- CVV 998
-    Amex- 371449635392376 -CVV 9997
-    Discover- 6011000993026909-  CVV 996
-    Diners - 3055155515160018 -CVV 996
-    Jcb - 3530142019945859 -cVV 996
-    Visa-4111 1111 1111 1111 -CVV 999
-    MAESTRO-5044 3393 2466 1725 266 -CVV 998
+  Test Cards: 
+    * Visa - 4012881888818888- CVV 999
+    * Master- 5146315000000055- CVV 998
+    * Amex- 371449635392376 -CVV 9997
+    * Discover- 6011000993026909-  CVV 996
+    * Diners - 3055155515160018 -CVV 996
+    * Jcb - 3530142019945859 -cVV 996
+    * Visa-4111 1111 1111 1111 -CVV 999
+    * MAESTRO-5044 3393 2466 1725 266 -CVV 998
 
     Expiry Date - 12/25
     Street Address - 8320
