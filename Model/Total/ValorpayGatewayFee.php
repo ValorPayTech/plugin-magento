@@ -80,12 +80,21 @@ class ValorpayGatewayFee extends AbstractTotal
             $value = null;
         }
         
-        return [
-            'code' => static::TOTAL_CODE,
-            'title' => $this->getLabel(),
-            'base_value' => $base_value,
-            'value' => $value
-        ];
+        if( $value ) {
+        
+		return [
+		    'code' => static::TOTAL_CODE,
+		    'title' => $this->getLabel(),
+		    'base_value' => $base_value,
+		    'value' => $value
+		];
+        
+        }
+        else {
+        	
+        	return [];
+        	
+        }
     }
 
     public function getLabel(): Phrase

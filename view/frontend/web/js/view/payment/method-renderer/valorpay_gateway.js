@@ -15,7 +15,7 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'ValorPay_CardPay/payment/form'
+                template: 'Magento_Payment/payment/form'
             },
 
             getData: function() {

@@ -10,7 +10,7 @@
         <payment>
             <valorpay_gateway>
                 <active>0</active>
-                <model>ValorpayPaymentGatewayFacade</model>
+                <model>ValorPay\CardPay\Model\Payment</model>
                 <order_status>processing</order_status>
                 <payment_action>authorize_capture</payment_action>
                 <title>ValorPay</title>
@@ -21,6 +21,7 @@
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>
                 <can_void>1</can_void>
+                <can_use_internal>1</can_use_internal>
                 <can_use_checkout>1</can_use_checkout>
                 <is_gateway>1</is_gateway>
                 <sort_order>1</sort_order>
@@ -30,8 +31,8 @@
                 <appid backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <appkey backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <epi backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <allowspecific>0</allowspecific>
-                <specificcountry></specificcountry>
+                <allowspecific>1</allowspecific>
+                <specificcountry>US</specificcountry>
                 <surchargeIndicator>0</surchargeIndicator>
                 <surchargeType>percentage</surchargeType>
                 <avs_type></avs_type>

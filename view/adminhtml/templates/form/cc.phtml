@@ -142,8 +142,30 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 ) ?>
 <script>
 jQuery(document).ready(function() {
-    jQuery("input").change(function(){
-      alert("The text has been changed.");
+    jQuery("#order-billing_address_street0").change(function(){
+      
+      	jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
+      	
+    });
+    jQuery("#order-billing_address_postcode").change(function(){
+    	
+    	jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
+      	
+    });
+    
+    setTimeout(function() {
+    	jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
+    	jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
+    },2000);
+    
+    jQuery("input").each(function() {
+    	if( jQuery(this).attr('name') == 'payment[method]' ) {
+		jQuery(this).on('change',function(){
+			jQuery('order-shipping-method-info').hide();
+			jQuery('order-shipping-method-choose').show();
+			order.setShippingMethod(null);
+    		});
+    	}
     });
 });
 </script>
