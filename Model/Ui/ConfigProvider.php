@@ -9,6 +9,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Payment\Model\CcConfig as CcConfig;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Framework\View\Asset\Repository as Repository; 
+use Magento\Checkout\Model\Cart;
 
 /**
  * Class ConfigProvider
@@ -28,7 +29,9 @@ final class ConfigProvider implements ConfigProviderInterface
     protected $methods = [];
     
     protected $_assetRepo;
-
+    
+    private $_billingAddress;
+    
     /**
      * @param CcConfig $ccConfig
      * @param PaymentHelper $paymentHelper
@@ -38,11 +41,13 @@ final class ConfigProvider implements ConfigProviderInterface
         CcConfig $ccConfig,
         PaymentHelper $paymentHelper,
         Repository $assetRepo,
+        Cart $cart,
         array $methodCodes = []
     ) {
     	$this->_assetRepo = $assetRepo;
 	$this->ccConfig = $ccConfig;
-        foreach ($methodCodes as $code) {
+	$this->_billingAddress = $cart->getQuote()->getBillingAddress();
+	foreach ($methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
     }
@@ -65,6 +70,8 @@ final class ConfigProvider implements ConfigProviderInterface
                             'hasAVSZip' => [$methodCode => $this->hasAVSZip($methodCode)],
 			    'hasAVSAddress' => [$methodCode => $this->hasAVSAddress($methodCode)],
 			    'showLogo' => [$methodCode => $this->showLogo($methodCode)],
+			    'getStreet' => [$methodCode => $this->getStreet()],
+			    'getPostcode' => [$methodCode => $this->getPostcode()],
 			    'logoImage' => [$methodCode => $this->_assetRepo->getUrl('ValorPay_CardPay::images/ValorPos.png')],
 			    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
                         ]
@@ -215,6 +222,34 @@ final class ConfigProvider implements ConfigProviderInterface
     		return true;
     	else
     		return false;
+    }
+
+    /**
+     * Retrieve street
+     *
+     * @param string $methodCode
+     * @return string
+     */
+    protected function getStreet()
+    {
+    
+    	$street = $this->_billingAddress->getData('street');
+    	return $street;
+    	
+    }
+
+    /**
+     * Retrieve postcode
+     *
+     * @param string $methodCode
+     * @return string
+     */
+    protected function getPostcode()
+    {
+    
+        $postcode = $this->_billingAddress->getData('postcode');
+    	return $postcode;
+    	
     }
     
 }

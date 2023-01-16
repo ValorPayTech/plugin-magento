@@ -4,6 +4,7 @@ namespace ValorPay\CardPay\Controller\Adminhtml\SendOtp;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Checkout\Model\Cart;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
@@ -15,6 +16,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     
     protected $_curl;
     
+    private $_cart;
+
     protected $_scopeConfig;
     
     protected $_valor_api_url = 'https://valorapitest.vaminfosys.com/v1/sendotp';
@@ -24,11 +27,18 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
 	\Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader $creditmemoLoader,
 	\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-	\Magento\Framework\HTTP\Client\Curl $curl
+	\Magento\Framework\HTTP\Client\Curl $curl, 
+	Cart $cart
     )
     {
         parent::__construct($context);
         $this->_curl = $curl;
+        $this->_cart = $cart;
+        
+        $billingAddress = $this->cart->getQuote()->getBillingAddress();
+	$street = $billingAddress->getData('street');
+        $postCode = $billingAddress->getData('postcode');
+
         $this->resultJsonFactory = $resultJsonFactory;
         $this->creditmemoLoader = $creditmemoLoader;
         $this->_scopeConfig = $scopeConfig;

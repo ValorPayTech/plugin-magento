@@ -42,7 +42,7 @@
                                                         <item name="renders" xsi:type="array">
                                                             <!-- merge payment method renders here -->
                                                             <item name="children" xsi:type="array">
-                                                                <item name="valorpay_gateway" xsi:type="array">
+                                                                <item name="valorpay_gateway-payments" xsi:type="array">
                                                                     <item name="component" xsi:type="string">ValorPay_CardPay/js/view/payment/valorpay_gateway</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="valorpay_gateway" xsi:type="array">

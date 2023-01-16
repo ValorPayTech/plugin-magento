@@ -15,10 +15,18 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'Magento_Payment/payment/form'
+                template: 'ValorPay_CardPay/payment/form'
             },
 
             getData: function() {
+				var avs_zipcode = '';
+				var avs_address = '';
+				if( this.hasAVSZip() && jQuery("#valorpay_gateway_avs_zipcode") !== 'undefined' ) {
+					avs_zipcode = jQuery("#valorpay_gateway_avs_zipcode").val();
+				}
+				if( this.hasAVSAddress() && jQuery("#valorpay_gateway_avs_address") !== 'undefined' ) {
+					avs_address = jQuery("#valorpay_gateway_avs_address").val();
+				}
                 return {
                     'method': this.getCode(),
                     'additional_data': {
@@ -30,8 +38,8 @@ define(
 						'cc_exp_year': this.creditCardExpYear(),
 						'cc_exp_month': this.creditCardExpMonth(),
 						'cc_number': this.creditCardNumber(),
-                        'avs_zipcode': (this.hasAVSZip() ? document.getElementById("valorpay_gateway_avs_zipcode").value : ''),
-                        'avs_address': (this.hasAVSAddress() ? document.getElementById("valorpay_gateway_avs_address").value : '')
+                        'avs_zipcode': avs_zipcode,
+                        'avs_address': avs_address
                     }
                 };
             },
@@ -65,11 +73,65 @@ define(
         	},
 
         	getAvsZip: function () {
-				return window.checkoutConfig.billingAddressFromData.postcode;
+
+				var zipcode = '';
+				jQuery("input").each(function() {
+					if( jQuery(this).attr('name') == 'postcode' ) {
+						zipcode = jQuery(this).val();
+					}
+				});
+
+				if( zipcode != '' ) return zipcode;
+
+				try {
+
+					return window.checkoutConfig.billingAddressFromData.postcode;
+
+				} catch(e) {
+
+					try {
+
+						return window.checkoutConfig.payment.ccform.getPostcode[this.getCode()];
+
+					} catch(e) {
+
+						return '';
+
+					}
+
+				}
+
         	},
 
         	getAvsAddress: function () {
-				return window.checkoutConfig.billingAddressFromData.street[0];
+
+				var streetaddress = '';
+				jQuery("input").each(function() {
+					if( jQuery(this).attr('name') == 'street[0]' ) {
+						streetaddress = jQuery(this).val();
+					}
+				});
+
+				if( streetaddress != '' ) return streetaddress;
+
+				try {
+
+					return window.checkoutConfig.billingAddressFromData.street[0];
+
+				} catch(e) {
+
+					try {
+
+						return window.checkoutConfig.payment.ccform.getStreet[this.getCode()];
+
+					} catch(e) {
+
+						return '';
+
+					}
+
+				}
+
         	},
 
             validate: function() {
