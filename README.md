@@ -6,7 +6,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
 
 ## Requirements
 
-  * Magento 2 Community Edition 2.x (Tested up to 2.4.4)
+  * Magento 2 Community Edition 2.4.x (Tested up to 2.4.4)
   * [ValorPayTech NODE API library ](https://github.com/ValorPay/API.Plugin.PaymentGateway) - (Called in Module)
 
 *Note:* this module has been tested only with Magento 2 __Community Edition__, it may not work as intended with Magento 2 __Enterprise Edition__
