@@ -1,12 +1,12 @@
 # ValorPayTech Payment Module for Magento 2 CE
 
-[![Version](http://poser.pugx.org/valorpay/plugin-magento/version)](https://packagist.org/packages/valorpay/plugin-magento) [![License](http://poser.pugx.org/valorpay/plugin-magento/license)](https://packagist.org/packages/valorpay/plugin-magento)
+![Packagist Version](https://img.shields.io/packagist/v/valorpay/plugin-magento?label=stable) [![License](http://poser.pugx.org/valorpay/plugin-magento/license)](https://packagist.org/packages/valorpay/plugin-magento)
 
 This is a Payment Module for Magento 2 Community Edition, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.
 
 ## Requirements
 
-  * Magento 2 Community Edition 2.4.x (Tested up to 2.4.4)
+  * Magento Community Edition (CE) versions (Tested up to 2.3.7 / 2.4.4)
   * [ValorPayTech NODE API library ](https://github.com/ValorPay/API.Plugin.PaymentGateway) - (Called in Module)
 
 *Note:* this module has been tested only with Magento 2 __Community Edition__, it may not work as intended with Magento 2 __Enterprise Edition__

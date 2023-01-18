@@ -2,12 +2,11 @@
     "name": "valorpay/plugin-magento",
     "description": "ValorpayTech Payment Gateway module for Magento",
     "require": {
-        "php": "7.*|^8.1",
+        "php": ">=7.3",
         "magento/module-sales": "*",
         "magento/module-checkout": "*",
         "magento/module-payment": "*",
-        "magento/framework": "*",
-        "magento/magento-composer-installer": "*"
+        "valorpay/api.plugin.paymentgateway": "1.0.0"
     },
     "type": "magento2-module",
     "version": "1.0.0",
