@@ -1,6 +1,6 @@
 # ValorPayTech Payment Module for Magento 2 CE
 
-[![Version](http://poser.pugx.org/valorpay/plugin-magento/version)](https://packagist.org/packages/valorpay/plugin-magento) [![License](http://poser.pugx.org/valorpay/plugin-magento/license)](https://packagist.org/packages/valorpay/plugin-magento)
+![Packagist Version](https://img.shields.io/packagist/v/valorpay/plugin-magento?label=stable) [![License](http://poser.pugx.org/valorpay/plugin-magento/license)](https://packagist.org/packages/valorpay/plugin-magento)
 
 This is a Payment Module for Magento 2 Community Edition, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.
 
