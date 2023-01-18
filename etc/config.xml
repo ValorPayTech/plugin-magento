@@ -31,8 +31,8 @@
                 <appid backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <appkey backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <epi backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <allowspecific>1</allowspecific>
-                <specificcountry>US</specificcountry>
+                <allowspecific>0</allowspecific>
+                <specificcountry></specificcountry>
                 <surchargeIndicator>0</surchargeIndicator>
                 <surchargeType>percentage</surchargeType>
                 <avs_type></avs_type>
