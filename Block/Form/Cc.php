@@ -31,10 +31,20 @@ class Cc extends \Magento\Payment\Block\Form
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Magento\Framework\Stdlib\StringUtils $string,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
+        $version = $productMetadata->getVersion();
+        $version_prefix = $string->substr($version,2,1);
+        if( $version_prefix >= 4 ) {
+        	$this->_template = 'ValorPay_CardPay::form/cc.phtml';
+        }
+        else {
+        	$this->_template = 'ValorPay_CardPay::form/cc_version_2_3.phtml';
+        }
     }
 
     /**

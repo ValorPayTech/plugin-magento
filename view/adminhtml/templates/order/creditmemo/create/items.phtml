@@ -11,8 +11,9 @@
 /** @var Magento\Sales\ViewModel\CreditMemo\Create\UpdateTotalsButton $viewModel */
 $viewModel = $block->getData('viewModel');
 /** @var Magento\Sales\ViewModel\CreditMemo\Create\ItemsToRender $itemsToRenderViewModel */
-$itemsToRenderViewModel = $block->getData('itemsToRenderViewModel');
-$_items = $itemsToRenderViewModel->getItems();
+//$itemsToRenderViewModel = $block->getData('itemsToRenderViewModel');
+//$_items = $itemsToRenderViewModel->getItems();
+$_items = $block->getCreditmemo()->getAllItems();
 $commentText = $block->getCreditmemo()->getCommentText();
 ?>
 
@@ -154,7 +155,14 @@ $commentText = $block->getCreditmemo()->getCommentText();
     </div>
 </section>
 
-<?php $scriptString = <<<script
+<?php
+$order_id      = $this->getRequest()->getParam('order_id');
+$invoice_id    = $this->getRequest()->getParam('invoice_id');
+$creditmemo_id = $this->getRequest()->getParam('creditmemo_id');
+
+$otp_url = $this->getUrl("valorpayrefund/SendOtp",["order_id"=>$order_id,"invoice_id"=>$invoice_id,"creditmemo_id"=>$creditmemo_id]);
+?>
+<script>
 
 require(['jquery'], function(jQuery){
 
@@ -207,10 +215,10 @@ cancelRefund = function() {
 
 resendOTPCreditMemo = function() {
     
-    document.getElementById("optresponse").innerHTML = 'RESENDMESSAGE';
+    document.getElementById("optresponse").innerHTML = '<?php echo __("Resending otp ..."); ?>';
     
     jQuery.ajax({
-            url: "OTPURL",
+            url: "<?php echo $otp_url; ?>",
 	    type: "POST",
 	    data: jQuery("#edit_form").serialize(),
 	    success: function(response) {
@@ -241,9 +249,8 @@ resendOTPCreditMemo = function() {
 
 
 submitCreditMemo = function() {
-    
     jQuery.ajax({
-            url: "OTPURL",
+            url: "<?php echo $otp_url; ?>",
 	    type: "POST",
 	    data: jQuery("#edit_form").serialize(),
 	    success: function(response) {
@@ -319,18 +326,4 @@ window.checkButtonsRelation = checkButtonsRelation;
 //]]>
 
 });
-script;
-?>
-<?php
-$order_id      = $this->getRequest()->getParam('order_id');
-$invoice_id    = $this->getRequest()->getParam('invoice_id');
-$creditmemo_id = $this->getRequest()->getParam('creditmemo_id');
-
-$otp_url = $this->getUrl("valorpayrefund/SendOtp",["order_id"=>$order_id,"invoice_id"=>$invoice_id,"creditmemo_id"=>$creditmemo_id]);
-
-$scriptString = str_replace("OTPURL",$otp_url,$scriptString);
-$scriptString = str_replace("RESENDMESSAGE",__("Resending otp ..."),$scriptString);
-
-/* @noEscape */ 
-echo $secureRenderer->renderTag('script', [], $scriptString, false);
-?>
+</script>

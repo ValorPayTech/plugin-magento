@@ -4,7 +4,6 @@ namespace ValorPay\CardPay\Controller\Adminhtml\SendOtp;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Checkout\Model\Cart;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
@@ -16,8 +15,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     
     protected $_curl;
     
-    private $_cart;
-
     protected $_scopeConfig;
     
     protected $_valor_api_url = 'https://valorapitest.vaminfosys.com/v1/sendotp';
@@ -27,18 +24,11 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
 	\Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader $creditmemoLoader,
 	\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-	\Magento\Framework\HTTP\Client\Curl $curl, 
-	Cart $cart
+	\Magento\Framework\HTTP\Client\Curl $curl
     )
     {
         parent::__construct($context);
         $this->_curl = $curl;
-        $this->_cart = $cart;
-        
-        $billingAddress = $this->cart->getQuote()->getBillingAddress();
-	$street = $billingAddress->getData('street');
-        $postCode = $billingAddress->getData('postcode');
-
         $this->resultJsonFactory = $resultJsonFactory;
         $this->creditmemoLoader = $creditmemoLoader;
         $this->_scopeConfig = $scopeConfig;
@@ -71,11 +61,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	$creditmemo = $this->creditmemoLoader->load();
 	$shipping_amount = $creditmemo->getShippingAmount();
         $amount  = $creditmemo->getBaseGrandTotal();
-        $amount -= $shipping_amount;
-        $amount += $creditmemo_array["shipping_amount"];
-        $amount += $creditmemo_array["adjustment_positive"];
-        $amount -= $creditmemo_array["adjustment_negative"];
         
+        /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
+	$rootPath      = $directory->getRoot();
+	$file          = fopen($rootPath."/mxcapture.txt","w");
+	fwrite($file,$amount);
+	fclose($file);*/
+	
         $requestData = array(
 	   'appid' => $this->getConfigData2('appid'),
 	   'appkey' => $this->getConfigData2('appkey'),
@@ -92,15 +85,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 	$response = json_decode($response);
 	
-	/*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	$rootPath      = $directory->getRoot();
-	$file          = fopen($rootPath."/capture54.txt","w");
-	fwrite($file,$response->response->emailId);
-	fclose($file);*/
-	
 	$resultJson = $this->resultJsonFactory->create();
-	
+			
 	if( $response->status == false ) {
 		
 		return $resultJson->setData([

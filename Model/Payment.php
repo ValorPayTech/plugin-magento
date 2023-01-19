@@ -51,32 +51,32 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         \Magento\Framework\App\Request\Http $request,
         array $data = array()
     ) {
-        parent::__construct(
-            $context,
-            $registry,
-            $extensionFactory,
-            $customAttributeFactory,
-            $paymentData,
-            $scopeConfig,
-            $logger,
-            $moduleList,
-            $localeDate,
-            null,
-            null,
-            $data
-        );
+		parent::__construct(
+		    $context,
+		    $registry,
+		    $extensionFactory,
+		    $customAttributeFactory,
+		    $paymentData,
+		    $scopeConfig,
+		    $logger,
+		    $moduleList,
+		    $localeDate,
+		    null,
+		    null,
+		    $data
+		);
 	
-	$this->_data = $data;
+		$this->_data = $data;
 	
-	$this->_request = $request;
+		$this->_request = $request;
 	
-	$this->_curl = $curl;
+		$this->_curl = $curl;
 
-        $this->_countryFactory = $countryFactory;
-        
-        $this->_remoteAddress = $remoteAddress;
-        
-        $this->_orderRepository = $orderRepository;
+		$this->_countryFactory = $countryFactory;
+
+		$this->_remoteAddress = $remoteAddress;
+
+		$this->_orderRepository = $orderRepository;
         
     }
 
@@ -97,8 +97,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         /** @var \Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
         $shipping = $order->getShippingAddress();
-
-        try {
+		
+	try {
 	    
 	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
 	    $surchargeType       = $this->getConfigData('surchargeType');
@@ -119,15 +119,17 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $amount = $amount - $surchargeAmount;
             
-            if( isset($_POST["payment"]["avs_zipcode"]) ) 
-            	$avs_zipcode = $_POST["payment"]["avs_zipcode"];
-            else	
-            	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode");
-            
-            if( isset($_POST["payment"]["avs_address"]) ) 
-            	$avs_address = $_POST["payment"]["avs_address"];
-            else	
-            	$avs_address = $payment->getAdditionalInformation("avs_address");
+            $payment_array = $this->_request->getParam('payment');
+	    
+	    if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
+	    	$avs_zipcode = $payment_array["avs_zipcode"];
+	    else
+	    	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
+	    	
+	    if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 ) 
+	    	$avs_address   = $payment_array["avs_address"];
+	    else
+	    	$avs_address = $payment->getAdditionalInformation("avs_address");
             
 	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
             $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
@@ -203,7 +205,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Approval Code, 5: Line Break, 6: RRN Number. */
 		__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Transaction ID:</strong>  %4$s.%5$s <strong>Approval Code:</strong> %6$s.%7$s <strong>RRN:</strong> %8$s' ), 
 		"authorized",
-		number_format( ($amount + $surchargeAmount), '2', '.', '' ),
+		$order->getBaseCurrency()->formatTxt($amount + $surchargeAmount),
 		"<br />",
 		$response->txnid,
 		"<br />",
@@ -241,8 +243,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         /** @var \Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
         $shipping = $order->getShippingAddress();
-	    
-        try {
+		
+	try {
 	    
 	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
 	    $surchargeType       = $this->getConfigData('surchargeType');
@@ -263,15 +265,17 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $amount = $amount - $surchargeAmount;
             
-            if( isset($_POST["payment"]["avs_zipcode"]) ) 
-            	$avs_zipcode = $_POST["payment"]["avs_zipcode"];
-            else	
-            	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode");
-            
-            if( isset($_POST["payment"]["avs_address"]) ) 
-            	$avs_address = $_POST["payment"]["avs_address"];
-            else	
-            	$avs_address = $payment->getAdditionalInformation("avs_address");
+            $payment_array = $this->_request->getParam('payment');
+	    
+	    if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
+	    	$avs_zipcode = $payment_array["avs_zipcode"];
+	    else
+	    	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
+	    	
+	    if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 ) 
+	    	$avs_address   = $payment_array["avs_address"];
+	    else
+	    	$avs_address = $payment->getAdditionalInformation("avs_address");
 	    
 	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
             $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
@@ -347,7 +351,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Approval Code, 5: Line Break, 6: RRN Number. */
 		__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Transaction ID:</strong>  %4$s.%5$s <strong>Approval Code:</strong> %6$s.%7$s <strong>RRN:</strong> %8$s'), 
 		"completed",
-		number_format( ($amount + $surchargeAmount), '2', '.', '' ),
+		$order->getBaseCurrency()->formatTxt($amount + $surchargeAmount),
 		"<br />",
 		$response->txnid,
 		"<br />",
@@ -451,7 +455,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    $response_string = sprintf(
 		__( 'ValorPos Refund for %1$s.%2$s <strong>Transaction ID:</strong>  %3$s.%4$s <strong>Approval Code:</strong> %5$s.%6$s <strong>RRN:</strong> %7$s' ), 
-		$response->amount,
+		$order->getBaseCurrency()->formatTxt($response->amount),
 		"<br />",
 		$response->txnid,
 		"<br />",
