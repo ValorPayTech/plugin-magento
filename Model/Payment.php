@@ -410,6 +410,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'token' => $token,
 		'ref_txn_id' => $transactionId,
 		'rrn' => $rrn,
+		'ip' => $this->_remoteAddress->getRemoteAddress(),
 		'auth_code' => $auth_code,
 		'surchargeIndicator' => $surchargeIndicator,
 		'otp' => $otp,
