@@ -187,7 +187,7 @@ class ConfigProvider implements ConfigProviderInterface
     protected function hasAVSZip($methodCode)
     {
     	$avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
-    	if( $avs_type === "zip" || $avs_type === "zipandaddress" )
+    	if( $avs_type == "zip" || $avs_type == "zipandaddress" )
     		return true;
     	else
     		return false;
@@ -202,7 +202,7 @@ class ConfigProvider implements ConfigProviderInterface
     protected function hasAVSAddress($methodCode)
     {
     	$avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
-    	if( $avs_type === "address" || $avs_type === "zipandaddress" )
+    	if( $avs_type == "address" || $avs_type == "zipandaddress" )
     		return true;
     	else
     		return false;
@@ -218,7 +218,7 @@ class ConfigProvider implements ConfigProviderInterface
     {
     
     	$show_logo = $this->methods[$methodCode]->getConfigData('show_logo');
-    	if( $show_logo === 1 )
+    	if( $show_logo == 1 )
     		return true;
     	else
     		return false;

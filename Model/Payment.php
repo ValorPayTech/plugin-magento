@@ -105,8 +105,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
 	    $surchargePercentage = $this->getConfigData('surchargePercentage');
 	    
-	    if( $surchargeIndicator === 1 ) {
-	    	if( $surchargeType === "flatrate" )
+	    if( $surchargeIndicator == 1 ) {
+	    	if( $surchargeType == "flatrate" )
 	            	$surchargeAmount = (float)$surchargeFlatRate;
 	    	else {
 	            	$total = $order->getData('base_subtotal');
@@ -178,12 +178,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    $response = json_decode($response);
 	    
-	    if( $response->status === false ) {
+	    if( $response->status == false ) {
 	    
 	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
 	    
 	    }
-	    elseif( $response->status === "error" ) {
+	    elseif( $response->status == "error" ) {
 	    	
 	    	$error_message = $response->mesg;
 		if( isset($response->desc) )
@@ -251,8 +251,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
 	    $surchargePercentage = $this->getConfigData('surchargePercentage');
 	    
-	    if( $surchargeIndicator === 1 ) {
-	    	if( $surchargeType === "flatrate" )
+	    if( $surchargeIndicator == 1 ) {
+	    	if( $surchargeType == "flatrate" )
 	            	$surchargeAmount = (float)$surchargeFlatRate;
 	    	else {
 	            	$total = $order->getData('base_subtotal');
@@ -324,12 +324,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    $response = json_decode($response);
 	    
-	    if( $response->status === false ) {
+	    if( $response->status == false ) {
 	    
 	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
 	    
 	    }
-	    elseif( $response->status === "error" ) {
+	    elseif( $response->status == "error" ) {
 	    	
 	    	$error_message = $response->mesg;
 		if( isset($response->desc) )
@@ -433,12 +433,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
 	    $response = json_decode($response);
 
-	    if( $response->status === false ) {
+	    if( $response->status == false ) {
 
 		throw new \Magento\Framework\Validator\Exception(__($response->message));
 
 	    }
-	    elseif( $response->status === "error" ) {
+	    elseif( $response->status == "error" ) {
 		
 		$error_message = $response->mesg;
 		if( isset($response->desc) )
