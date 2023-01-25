@@ -79,6 +79,73 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		$this->_orderRepository = $orderRepository;
         
     }
+    
+    private function get_surcharge_fee($order) 
+    {
+    
+	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
+	    $surchargeType       = $this->getConfigData('surchargeType');
+	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
+	    $surchargePercentage = $this->getConfigData('surchargePercentage');
+
+	    if( $surchargeIndicator == 1 ) {
+		
+		if( $surchargeType == "flatrate" )
+			$surchargeAmount = (float)$surchargeFlatRate;
+		else {
+			$total = $order->getData('base_subtotal');
+			$surchargeAmount = (float)(($total*$surchargePercentage)/100);
+		}
+		
+	    } else {
+		$surchargeAmount    = 0;
+	    }
+	    
+	    return $surchargeAmount;
+    
+    }
+    
+    private function post_transaction($requestData,$refundRequest=0) 
+    {
+    
+    	    $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+    	    
+    	    if( $refundRequest == 1 )
+	    	$this->_curl->post($this->_valor_refund_api_url, $requestData);
+	    else	
+	    	$this->_curl->post($this->_valor_api_url, $requestData);
+	    
+	    //response will contain the output of curl request
+	    $response = $this->_curl->getBody();
+	    
+	    /*** Debuging ***/
+	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
+	    $rootPath      =  $directory->getRoot();
+	    $file = fopen($rootPath."/capture.txt","w");
+	    fwrite($file,$response);
+	    fclose($file);*/
+	    
+	    $response = json_decode($response);
+	    
+	    if( $response->status == false ) {
+	    
+	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
+	    
+	    }
+	    elseif( $response->status == "error" ) {
+	    	
+	    	$error_message = $response->mesg;
+		if( isset($response->desc) )
+	    		$error_message .= " ".$response->desc;
+	    	
+	    	throw new \Magento\Framework\Validator\Exception(__($error_message));
+	    	
+	    }
+	    
+	    return $response;
+    
+    }
 
     /**
      * Authorize payment
@@ -100,22 +167,11 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		
 	try {
 	    
-	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
-	    $surchargeType       = $this->getConfigData('surchargeType');
-	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
-	    $surchargePercentage = $this->getConfigData('surchargePercentage');
+	    $surchargeIndicator = $this->getConfigData('surchargeIndicator');
 	    
-	    if( $surchargeIndicator == 1 ) {
-	    	if( $surchargeType == "flatrate" )
-	            	$surchargeAmount = (float)$surchargeFlatRate;
-	    	else {
-	            	$total = $order->getData('base_subtotal');
-	            	$surchargeAmount = (float)(($total*$surchargePercentage)/100);
-            	}
-            } else {
-            	$surchargeAmount    = 0;
-            	$surchargeIndicator = 0;
-            }
+	    if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
+            
+            $surchargeAmount = $this->get_surcharge_fee($order);
             
             $amount = $amount - $surchargeAmount;
             
@@ -162,37 +218,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'expirydate' => sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2)
             );
             
-            $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	    $this->_curl->post($this->_valor_api_url, $requestData);
-	    
-	    //response will contain the output of curl request
-	    $response = $this->_curl->getBody();
-	    
-	    /*** Debuging ***/
-	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	    $rootPath      =  $directory->getRoot();
-	    $file = fopen($rootPath."/capture.txt","w");
-	    fwrite($file,$response);
-	    fclose($file);*/
-	    
-	    $response = json_decode($response);
-	    
-	    if( $response->status == false ) {
-	    
-	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
-	    
-	    }
-	    elseif( $response->status == "error" ) {
-	    	
-	    	$error_message = $response->mesg;
-		if( isset($response->desc) )
-	    		$error_message .= " ".$response->desc;
-	    	
-	    	throw new \Magento\Framework\Validator\Exception(__($error_message));
-	    	
-	    }
-	    
+            $response = $this->post_transaction($requestData);
+            
             $payment
                 ->setTransactionId($response->txnid)
                 ->setIsTransactionClosed(0);
@@ -247,21 +274,10 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	try {
 	    
 	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
-	    $surchargeType       = $this->getConfigData('surchargeType');
-	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
-	    $surchargePercentage = $this->getConfigData('surchargePercentage');
 	    
-	    if( $surchargeIndicator == 1 ) {
-	    	if( $surchargeType == "flatrate" )
-	            	$surchargeAmount = (float)$surchargeFlatRate;
-	    	else {
-	            	$total = $order->getData('base_subtotal');
-	            	$surchargeAmount = (float)(($total*$surchargePercentage)/100);
-            	}
-            } else {
-            	$surchargeAmount    = 0;
-            	$surchargeIndicator = 0;
-            }
+	    if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
+	                
+            $surchargeAmount = $this->get_surcharge_fee($order);
             
             $amount = $amount - $surchargeAmount;
             
@@ -308,36 +324,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'expirydate' => sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2)
             );
             
-            $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	    $this->_curl->post($this->_valor_api_url, $requestData);
-	    
-	    //response will contain the output of curl request
-	    $response = $this->_curl->getBody();
-	    
-	    /*** Debuging ***/
-	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	    $rootPath      =  $directory->getRoot();
-	    $file = fopen($rootPath."/capture.txt","w");
-	    fwrite($file,$response);
-	    fclose($file);*/
-	    
-	    $response = json_decode($response);
-	    
-	    if( $response->status == false ) {
-	    
-	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
-	    
-	    }
-	    elseif( $response->status == "error" ) {
-	    	
-	    	$error_message = $response->mesg;
-		if( isset($response->desc) )
-	    		$error_message .= " ".$response->desc;
-	    		
-	    	throw new \Magento\Framework\Validator\Exception(__($error_message));
-	    
-	    }
+            $response = $this->post_transaction($requestData);
 	    
             $payment
                 ->setTransactionId($response->txnid)
@@ -400,6 +387,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
             
+            if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
+            
             $requestData = array(
 		'appid' => $this->getConfigData('appid'),
 		'appkey' => $this->getConfigData('appkey'),
@@ -416,38 +405,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'otp' => $otp,
 		'uuid' => $uuid
 	    );
-
-	    $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	    $this->_curl->post($this->_valor_refund_api_url, $requestData);
-
-	    //response will contain the output of curl request
-	    $response = $this->_curl->getBody();
-
-	    /*** Debuging ***/
-	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	    $rootPath      =  $directory->getRoot();
-	    $file = fopen($rootPath."/capture.txt","w");
-	    fwrite($file,$response);
-	    fclose($file);*/
-
-	    $response = json_decode($response);
-
-	    if( $response->status == false ) {
-
-		throw new \Magento\Framework\Validator\Exception(__($response->message));
-
-	    }
-	    elseif( $response->status == "error" ) {
-		
-		$error_message = $response->mesg;
-		if( isset($response->desc) )
-	    		$error_message .= " ".$response->desc;
-	    		
-		throw new \Magento\Framework\Validator\Exception(__($error_message));
-	    	    
-	    }
 	    
+	    $response = $this->post_transaction($requestData,1);
+
 	    $payment
 	    	->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
 	    	->setParentTransactionId($transactionId)
@@ -488,10 +448,10 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
      */
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        if (!$this->getConfigData('appid')) {
+        if ( !$this->getConfigData('appid') || !$this->getConfigData('appkey') || !$this->getConfigData('epi') ) {
             return false;
         }
-
+ 
         return parent::isAvailable($quote);
     }
     
