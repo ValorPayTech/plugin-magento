@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © 2022 ValorPay. All rights reserved.
- * See LICENSE.txt for license details.
- */
 namespace ValorPay\CardPay\Model\Adminhtml\Source;
 
 /**

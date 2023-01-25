@@ -17,7 +17,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     
     protected $_scopeConfig;
     
-    protected $_valor_api_url = 'https://valorapitest.vaminfosys.com/v1/sendotp';
+    protected $_valor_api_url = 'https://magento.valorpaytech.com/v1/sendotp';
     
     public function __construct(
     	\Magento\Backend\App\Action\Context $context,
@@ -87,7 +87,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 	$resultJson = $this->resultJsonFactory->create();
 			
-	if( $response->status == false ) {
+	if( $response->status === false ) {
 		
 		return $resultJson->setData([
 			'message' => __($response->message),
@@ -95,7 +95,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 		]);
 
 	}
-	elseif( $response->status == "error" ) {
+	elseif( $response->status === "error" ) {
 		
 		return $resultJson->setData([
 			'message' => __($response->mesg),
@@ -106,7 +106,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 		$masked_is_enable_2fa = $response->response->is_enable_2fa;
 
-		if( $masked_is_enable_2fa == 1 ) {
+		if( $masked_is_enable_2fa === 1 ) {
 
 			$masked_email = $response->response->emailId;
 			$masked_phone = $response->response->phoneNumber;

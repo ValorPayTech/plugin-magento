@@ -1,5 +1,4 @@
-<?php declare(strict_types=1);
-
+<?php
 namespace ValorPay\CardPay\Model\Order\Total\Invoice;
 
 use Magento\Sales\Model\Order\Invoice;

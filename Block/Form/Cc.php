@@ -128,7 +128,7 @@ class Cc extends \Magento\Payment\Block\Form
     public function hasAVSZip()
     {
     	$avs_type = $this->getMethod()->getConfigData('avs_type');
-    	if( $avs_type == "zip" || $avs_type == "zipandaddress" )
+    	if( $avs_type === "zip" || $avs_type === "zipandaddress" )
     		return true;
     	else
     		return false;
@@ -143,7 +143,7 @@ class Cc extends \Magento\Payment\Block\Form
     public function hasAVSAddress()
     {
     	$avs_type = $this->getMethod()->getConfigData('avs_type');
-    	if( $avs_type == "address" || $avs_type == "zipandaddress" )
+    	if( $avs_type === "address" || $avs_type === "zipandaddress" )
     		return true;
     	else
     		return false;
@@ -159,7 +159,7 @@ class Cc extends \Magento\Payment\Block\Form
     {
     
     	$show_logo = $this->getMethod()->getConfigData('show_logo');
-    	if( $show_logo == 1 )
+    	if( $show_logo === 1 )
     		return true;
     	else
     		return false;

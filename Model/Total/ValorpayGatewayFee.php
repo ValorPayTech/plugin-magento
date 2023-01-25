@@ -1,5 +1,4 @@
 <?php
-declare(strict_types = 1);
 namespace ValorPay\CardPay\Model\Total;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;

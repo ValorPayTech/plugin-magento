@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+  <table name="quote" resource="default">
+    <column xsi:type="varchar" name="valorpay_gateway_fee" nullable="true" length="100" comment="Valorpay Gateway Fee"/>
+    <column xsi:type="varchar" name="base_valorpay_gateway_fee" nullable="true" length="100" comment="Base Valorpay Gateway Fee"/>
+  </table>
+  <table name="sales_order" resource="default">
+    <column xsi:type="varchar" name="valorpay_gateway_fee" nullable="true" length="100" comment="Valorpay Gateway Fee"/>
+    <column xsi:type="varchar" name="base_valorpay_gateway_fee" nullable="true" length="100" comment="Base Valorpay Gateway Fee"/>
+  </table>
+  <table name="sales_invoice" resource="default">
+    <column xsi:type="varchar" name="valorpay_gateway_fee" nullable="true" length="100" comment="Valorpay Gateway Fee"/>
+    <column xsi:type="varchar" name="base_valorpay_gateway_fee" nullable="true" length="100" comment="Base Valorpay Gateway Fee"/>
+  </table>
+  <table name="sales_creditmemo" resource="default">
+    <column xsi:type="varchar" name="valorpay_gateway_fee" nullable="true" length="100" comment="Valorpay Gateway Fee"/>
+    <column xsi:type="varchar" name="base_valorpay_gateway_fee" nullable="true" length="100" comment="Base Valorpay Gateway Fee"/>
+  </table>
+  <table name="sales_order_payment" resource="default">
+    <column xsi:type="varchar" name="valor_token" nullable="true" length="100" comment="ValorPay Token"/>
+    <column xsi:type="varchar" name="valor_rrn" nullable="true" length="100" comment="ValorPay RRN"/>
+    <column xsi:type="varchar" name="valor_auth_code" nullable="true" length="100" comment="ValorPay Auth Code"/>
+  </table>
+</schema>
