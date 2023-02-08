@@ -54,7 +54,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
 
 ## Installation (manual)
 
-  * [Download the Payment Module archive](https://github.com/valorpay/plugin-magento/archive/master.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
+  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-magento/archive/refs/heads/main.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
 
   * Enable Payment Module
 
@@ -95,7 +95,6 @@ If you setup the module with default values, you can use the test data to make a
   * API Id ```rPWqbGUwUOH37S2IeLa8GYu9tK3K7jNY```
   * API Key ```LjTjMu6Asd6ZfNgnQRIBOr54UFYKF6Pi```
   * EPI ```2235560406```
-  * API URL ```https://valorapitest.vaminfosys.com/v1/payment```
   * Use Sandbox ``Yes``
 
 ### Test card details
