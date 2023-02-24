@@ -129,21 +129,16 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
 	    $rootPath      =  $directory->getRoot();
-	    $file = fopen($rootPath."/capture.txt","w");
+	    $file = fopen($rootPath."/capture666.txt","w");
 	    fwrite($file,$response);
 	    fclose($file);*/
 	    
 	    $response = json_decode($response);
 	    
-	    if( $response->status == false ) {
-	    
-	    	throw new \Magento\Framework\Validator\Exception(__($response->message));
-	    
-	    }
-	    elseif( $response->status == "error" ) {
+	    if( $response->error_no != "S00" ) {
 	    	
 	    	$error_message = $response->mesg;
-		if( isset($response->desc) )
+			if( isset($response->desc) )
 	    		$error_message .= " ".$response->desc;
 	    	
 	    	throw new \Magento\Framework\Validator\Exception(__($error_message));

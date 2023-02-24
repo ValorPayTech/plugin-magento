@@ -91,24 +91,25 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	//response will contain the output of curl request
 	$response = $this->_curl->getBody();
 	
+	/*** Debuging ***/
+	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
+	$rootPath      =  $directory->getRoot();
+	$file = fopen($rootPath."/capture666.txt","w");
+	fwrite($file,$response);
+	fclose($file);
+
 	$response = json_decode($response);
 	
 	$resultJson = $this->resultJsonFactory->create();
 			
-	if( $response->status === false ) {
-		
-		return $resultJson->setData([
-			'message' => __($response->message),
-			'error'   => true
-		]);
-
-	}
-	elseif( $response->status === "error" ) {
+	if( $response->error_no != "S00" ) {
 		
 		return $resultJson->setData([
 			'message' => __($response->mesg),
 			'error'   => true
 		]);
+		
 	}
 	else {
 	
