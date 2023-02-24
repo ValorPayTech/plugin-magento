@@ -17,8 +17,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_code = self::PAYMENT_METHOD_VALORPAY_GATEWAY_CODE;
     
     protected $_curl;
-    protected $_valor_api_url = 'https://magento.valorpaytech.com/v1/payment';
-    protected $_valor_refund_api_url = 'https://magento.valorpaytech.com/v1/refundpayment';
+    protected $_valor_api_url        = 'https://securelink.valorpaytech.com/';
     
     protected $_remoteAddress;	
     protected $_orderRepository;
@@ -51,6 +50,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         \Magento\Framework\App\Request\Http $request,
         array $data = array()
     ) {
+		
 		parent::__construct(
 		    $context,
 		    $registry,
@@ -90,16 +90,18 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
 	    if( $surchargeIndicator == 1 ) {
 		
-		if( $surchargeType == "flatrate" )
-			$surchargeAmount = (float)$surchargeFlatRate;
-		else {
-			$total = $order->getData('base_subtotal');
-			$surchargeAmount = (float)(($total*$surchargePercentage)/100);
-		}
+			if( $surchargeType == "flatrate" )
+				$surchargeAmount = (float)$surchargeFlatRate;
+			else {
+				$total = $order->getData('base_subtotal');
+				$surchargeAmount = (float)(($total*$surchargePercentage)/100);
+			}
 		
 	    } else {
-		$surchargeAmount    = 0;
-	    }
+
+			$surchargeAmount    = 0;
+	    
+		}
 	    
 	    return $surchargeAmount;
     
@@ -107,14 +109,19 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     
     private function post_transaction($requestData,$refundRequest=0) 
     {
-    
-    	    $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+		
+		$sandbox = $this->getConfigData('sandbox');
+
+    	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
     	    
-    	    if( $refundRequest == 1 )
-	    	$this->_curl->post($this->_valor_refund_api_url, $requestData);
-	    else	
-	    	$this->_curl->post($this->_valor_api_url, $requestData);
-	    
+		if( $sandbox == 1 )	{
+			
+			$this->_valor_api_url = 'https://securelinktest.valorpaytech.com:4430'; 
+		
+		}
+
+    	$this->_curl->post($this->_valor_api_url, $requestData);
+		
 	    //response will contain the output of curl request
 	    $response = $this->_curl->getBody();
 	    

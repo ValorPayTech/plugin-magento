@@ -17,7 +17,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     
     protected $_scopeConfig;
     
-    protected $_valor_api_url = 'https://magento.valorpaytech.com/v1/sendotp';
+    protected $_valor_api_url = 'https://2fa.valorpaytech.com/?main_action=Manage2FA&operation=ecommRefund';
     
     public function __construct(
     	\Magento\Backend\App\Action\Context $context,
@@ -51,6 +51,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     public function execute()
     { 
 	
+	$sandbox = $this->getConfigData2('sandbox');
+	
+	if( $sandbox == 1 )	{
+		
+		$this->_valor_api_url = 'https://2fademo.isoaccess.com/?main_action=Manage2FA&operation=ecommRefund'; 
+	
+	}
+
 	$creditmemo_array = $this->getRequest()->getParam('creditmemo');
 	
 	$this->creditmemoLoader->setOrderId($this->getRequest()->getParam('order_id'));
@@ -62,14 +70,14 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	$shipping_amount = $creditmemo->getShippingAmount();
         $amount  = $creditmemo->getBaseGrandTotal();
         
-        /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
 	$rootPath      = $directory->getRoot();
 	$file          = fopen($rootPath."/mxcapture.txt","w");
 	fwrite($file,$amount);
 	fclose($file);*/
 	
-        $requestData = array(
+    $requestData = array(
 	   'appid' => $this->getConfigData2('appid'),
 	   'appkey' => $this->getConfigData2('appkey'),
 	   'epi' => $this->getConfigData2('epi'),
