@@ -68,45 +68,33 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 	$creditmemo = $this->creditmemoLoader->load();
 	$shipping_amount = $creditmemo->getShippingAmount();
-        $amount  = $creditmemo->getBaseGrandTotal();
+    $amount  = $creditmemo->getBaseGrandTotal();
         
-    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	$rootPath      = $directory->getRoot();
-	$file          = fopen($rootPath."/mxcapture.txt","w");
-	fwrite($file,$amount);
-	fclose($file);*/
-	
     $requestData = array(
 	   'appid' => $this->getConfigData2('appid'),
 	   'appkey' => $this->getConfigData2('appkey'),
 	   'epi' => $this->getConfigData2('epi'),
+	   'action' => 'ecomm_refund',
 	   'amount' => $amount,
 	   'sandbox' => $this->getConfigData2('sandbox')
 	);
 	
 	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	$this->_curl->post($this->_valor_api_url, $requestData);
-
+	$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+	$this->_curl->addHeader("Content-Type", "application/json");
+	$this->_curl->post($this->_valor_api_url, json_encode($requestData));
+	
 	//response will contain the output of curl request
 	$response = $this->_curl->getBody();
 	
-	/*** Debuging ***/
-	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	$directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	$rootPath      =  $directory->getRoot();
-	$file = fopen($rootPath."/capture666.txt","w");
-	fwrite($file,$response);
-	fclose($file);
-
 	$response = json_decode($response);
 	
 	$resultJson = $this->resultJsonFactory->create();
 			
-	if( $response->error_no != "S00" ) {
+	if( $response->error_code != "S00" ) {
 		
 		return $resultJson->setData([
-			'message' => __($response->mesg),
+			'message' => __($response->error_desc),
 			'error'   => true
 		]);
 		

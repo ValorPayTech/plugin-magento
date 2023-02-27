@@ -113,6 +113,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		$sandbox = $this->getConfigData('sandbox');
 
     	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+    	$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+    	$this->_curl->addHeader("Content-Type", "application/json");
     	    
 		if( $sandbox == 1 )	{
 			
@@ -120,18 +122,10 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		
 		}
 
-    	$this->_curl->post($this->_valor_api_url, $requestData);
+    	$this->_curl->post($this->_valor_api_url, json_encode($requestData));
 		
 	    //response will contain the output of curl request
 	    $response = $this->_curl->getBody();
-	    
-	    /*** Debuging ***/
-	    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-	    $directory     = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-	    $rootPath      =  $directory->getRoot();
-	    $file = fopen($rootPath."/capture666.txt","w");
-	    fwrite($file,$response);
-	    fclose($file);*/
 	    
 	    $response = json_decode($response);
 	    
