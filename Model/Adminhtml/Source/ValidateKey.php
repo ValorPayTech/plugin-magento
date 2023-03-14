@@ -4,17 +4,17 @@ namespace ValorPay\CardPay\Model\Adminhtml\Source;
 /**
  * Class ValidateKey
  */
-class ValidateKey implements \Magento\Framework\App\Config\Value
+class ValidateKey 
 {
     
-    /**
-     * @return $this
-     */
-    public function beforeSave()
-    { 
+    public function aroundSave(
+        \Magento\Config\Model\Config $subject,
+        \Closure $proceed
+    ) {
         
         throw new \Magento\Framework\Exception\ValidatorException(__('ValorPay API Keys are not valid.'));
-
+        
+        return $proceed();
     }
 
 }
