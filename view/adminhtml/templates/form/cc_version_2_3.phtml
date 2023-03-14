@@ -34,7 +34,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             <span><?= $block->escapeHtml(__('Credit Card Number')) ?></span>
         </label>
         <div class="admin__field-control">
-            <input type="text" id="<?= /* @noEscape */ $code ?>_cc_number" name="payment[cc_number]"
+            <input type="text" id="<?= /* @noEscape */ $code ?>_cc_number" name="payment[cc_number]" maxlength="19" 
                    title="<?= $block->escapeHtmlAttr(__('Credit Card Number')) ?>" class="admin__control-text validate-cc-number"
                    value="<?= /* @noEscape */ $block->getInfoData('cc_number') ?>"/>
         </div>
