@@ -37,7 +37,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
         </label>
         <div class="admin__field-control">
             <input type="text" id="<?= /* @noEscape */ $code ?>_cc_number" name="payment[cc_number]"
-                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>" maxlength="19"
+                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>" onKeyDown="if(this.value.length==19) return false;" 
                    class="admin__control-text validate-cc-number"
                    value="<?= /* @noEscape */ $block->getInfoData('cc_number') ?>"/>
             <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
@@ -91,6 +91,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             <div class="admin__field-control">
                 <input type="text" title="<?= $block->escapeHtml(__('Card Verification Number')) ?>"
                        class="required-entry validate-cc-cvn admin__control-cvn admin__control-text"
+                       onKeyDown="if(this.value.length==4) return false;"
                        id="<?= /* @noEscape */ $code ?>_cc_cid"
                        name="payment[cc_cid]" value="<?= /* @noEscape */ $block->getInfoData('cc_cid') ?>"/>
                 <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(

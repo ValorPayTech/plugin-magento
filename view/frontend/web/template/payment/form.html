@@ -82,7 +82,7 @@
 			            <span><!-- ko i18n: 'Credit Card Number'--><!-- /ko --></span>
 			        </label>
 			        <div class="control">
-			            <input type="number" name="payment[cc_number]" class="input-text" maxlength="19" value=""
+			            <input type="number" name="payment[cc_number]" class="input-text" onKeyDown="if(this.value.length==19) return false;" value=""
 			                   oncopy="return false;"
 			                   oncut="return false;"
 			                   onpaste="return false;"
@@ -144,6 +144,7 @@
 			                   autocomplete="off"
 			                   class="input-text cvv"
 			                   name="payment[cc_cid]"
+							   onKeyDown="if(this.value.length==4) return false;"
 			                   value=""
 			                   oncopy="return false;"
 			                   oncut="return false;"

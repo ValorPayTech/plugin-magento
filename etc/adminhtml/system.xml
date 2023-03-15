@@ -40,6 +40,10 @@
                     <label>EPI</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
+                <field id="authtoken" translate="label" type="obscure" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Auth Token</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
                 <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Payment Method</label>
                     <source_model>ValorPay\CardPay\Model\Adminhtml\Source\PaymentMethod</source_model>
