@@ -47,7 +47,6 @@
                 <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Payment Method</label>
                     <source_model>ValorPay\CardPay\Model\Adminhtml\Source\PaymentMethod</source_model>
-                    <backend_model>ValorPay\CardPay\Model\Adminhtml\Source\ValidateKey</backend_model>
                 </field>
                 <field id="allowspecific" translate="label" type="allowspecific" sortOrder="130" showInDefault="9" showInWebsite="1" showInStore="0">
                     <label>Payment From Applicable Countries</label>

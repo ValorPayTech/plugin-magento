@@ -113,13 +113,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		$sandbox = $this->getConfigData('sandbox');
 
     	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-    	$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
     	$this->_curl->addHeader("Content-Type", "application/json");
     	    
 		if( $sandbox == 1 )	{
 			
 			$this->_valor_api_url = 'https://securelinktest.valorpaytech.com:4430'; 
-		
+			$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+			
 		}
 
     	$this->_curl->post($this->_valor_api_url, json_encode($requestData));

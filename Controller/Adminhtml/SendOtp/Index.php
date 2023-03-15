@@ -53,12 +53,6 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 	$sandbox = $this->getConfigData2('sandbox');
 	
-	if( $sandbox == 1 )	{
-		
-		$this->_valor_api_url = 'https://2fademo.isoaccess.com/?main_action=Manage2FA&operation=ecommRefund'; 
-	
-	}
-
 	$creditmemo_array = $this->getRequest()->getParam('creditmemo');
 	
 	$this->creditmemoLoader->setOrderId($this->getRequest()->getParam('order_id'));
@@ -80,7 +74,12 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	);
 	
 	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-	$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+	
+	if( $sandbox == 1 )	{
+		$this->_valor_api_url = 'https://2fademo.isoaccess.com/?main_action=Manage2FA&operation=ecommRefund'; 
+		$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+	}
+
 	$this->_curl->addHeader("Content-Type", "application/json");
 	$this->_curl->post($this->_valor_api_url, json_encode($requestData));
 	

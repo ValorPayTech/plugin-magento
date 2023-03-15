@@ -31,6 +31,8 @@ class ValidateKey
         $epi       = $groups["valorpay_gateway"]["fields"]["epi"]["value"];
         $authtoken = $groups["valorpay_gateway"]["fields"]["authtoken"]["value"];
 
+        if( $appid == "******" ) return $proceed();
+
         $requestData = array(
             'app_id'     => $appid,
             'auth_key'   => $authkey,
