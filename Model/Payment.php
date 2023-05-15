@@ -169,7 +169,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $surchargeAmount = $this->get_surcharge_fee($order);
             
-            $amount = $amount - $surchargeAmount;
+			$tax = $order->getBaseTaxAmount();
+
+            $amount = $amount - $tax - $surchargeAmount;
             
             $payment_array = $this->_request->getParam('payment');
 	    
@@ -196,7 +198,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'phone' => $billing->getTelephone(),
 		'email' => $order->getCustomerEmail(),
 		'uid' => $order->getIncrementId(),
-		'tax' => $order->getBaseTaxAmount(),
+		'tax_amount' => $order->getBaseTaxAmount(),
 		'ip' => $this->_remoteAddress->getRemoteAddress(),
 		'surchargeIndicator' => $surchargeIndicator,
 		'surchargeAmount' => $surchargeAmount,
@@ -275,7 +277,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	                
             $surchargeAmount = $this->get_surcharge_fee($order);
             
-            $amount = $amount - $surchargeAmount;
+			$tax = $order->getBaseTaxAmount();
+
+            $amount = $amount - $tax - $surchargeAmount;
             
             $payment_array = $this->_request->getParam('payment');
 	    
@@ -302,7 +306,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'phone' => $billing->getTelephone(),
 		'email' => $order->getCustomerEmail(),
 		'uid' => $order->getIncrementId(),
-		'tax' => $order->getBaseTaxAmount(),
+		'tax_amount' => $order->getBaseTaxAmount(),
 		'ip' => $this->_remoteAddress->getRemoteAddress(),
 		'surchargeIndicator' => $surchargeIndicator,
 		'surchargeAmount' => $surchargeAmount,
