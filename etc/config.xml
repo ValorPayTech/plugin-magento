@@ -41,6 +41,9 @@
                 <surchargePercentage>0</surchargePercentage>
                 <surchargeFlatRate>0</surchargeFlatRate>
                 <cctypes>AE,VI,MC,DI,JCB,DN</cctypes>
+                <!--added starts-->
+                <show_save_card>1</show_save_card>
+                <!--added starts-->
             </valorpay_gateway>
         </payment>
     </default>

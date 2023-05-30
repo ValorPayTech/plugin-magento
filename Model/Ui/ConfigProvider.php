@@ -31,6 +31,10 @@ class ConfigProvider implements ConfigProviderInterface
     protected $_assetRepo;
     
     private $_billingAddress;
+
+    protected $customerSession;
+
+    protected $cardCollection;
     
     /**
      * @param CcConfig $ccConfig
@@ -42,14 +46,62 @@ class ConfigProvider implements ConfigProviderInterface
         PaymentHelper $paymentHelper,
         Repository $assetRepo,
         Cart $cart,
+        \Magento\Customer\Model\Session $customerSession,
+        \ValorPay\CardPay\Block\Vault\Cc $cardCollection,
         array $methodCodes = []
     ) {
     	$this->_assetRepo = $assetRepo;
 	$this->ccConfig = $ccConfig;
 	$this->_billingAddress = $cart->getQuote()->getBillingAddress();
+    $this->customerSession  = $customerSession;
+    $this->cardCollection = $cardCollection;
 	foreach ($methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
+    }
+
+    public function getStoredCards()
+    {
+          
+        $cardDetails=[];
+        if($this->canSaveCard())
+        {
+            if(count($this->cardCollection->getCardCollection())){
+                $cardCollection = $this->cardCollection->getCardCollection()
+                ->addFieldToSelect(array('cc_id','cc_type','token','cc_exp_month','cc_exp_year','cc_last_4'));
+
+                foreach($cardCollection as $card){
+                    $cardDetails[]    = [
+                            'cc_id'       => $card->getCcId(),
+                            'cc_type'    => $card->getCcType(),
+                            'token' => $card->getToken(),
+                            'cc_exp_month'     => $card->getCcExpMonth(),
+                            'cc_exp_year'     => $card->getCcExpYear(),
+                            'cc_last_4'     => $card->getCcLast4(),
+                            'type_url'    => $this->cardCollection->getIconUrl($card->getCcType()),
+                            'type_width'    => $this->cardCollection->getIconWidth($card->getCcType()),
+                            'type_height'    => $this->cardCollection->getIconHeight($card->getCcType()),
+                        ];
+                }
+            }
+        }
+
+        return $cardDetails;
+        
+    }
+
+    /**
+     * If card can be saved for further use
+     *
+     * @return boolean
+     */
+    public function canSaveCard()
+    {
+        if ($this->customerSession->isLoggedIn()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -58,6 +110,7 @@ class ConfigProvider implements ConfigProviderInterface
     public function getConfig()
     {
         $config = [];
+
         foreach ($this->methods as $methodCode => $method) {
             if ($method->isAvailable()) {
                 $config = array_merge_recursive($config, [
@@ -73,7 +126,10 @@ class ConfigProvider implements ConfigProviderInterface
 			    'getStreet' => [$methodCode => $this->getStreet()],
 			    'getPostcode' => [$methodCode => $this->getPostcode()],
 			    'logoImage' => [$methodCode => $this->_assetRepo->getUrl('ValorPay_CardPay::images/ValorPos.png')],
-			    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()]
+			    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()],
+                   'canSaveCard' => [$methodCode => $this->canSaveCard()],
+                   'showSaveCard' => [$methodCode => $this->showSaveCard($methodCode)],
+                   'storedCards' => [$methodCode => $this->getStoredCards()],
                         ]
                     ]
                 ]);
@@ -250,6 +306,16 @@ class ConfigProvider implements ConfigProviderInterface
         $postcode = $this->_billingAddress->getData('postcode');
     	return $postcode;
     	
+    }
+    /*added starts*/
+    /**
+     * Whether to give customers the 'save this card' option, or just assume yes.
+     *
+     * @return bool
+     */
+    public function showSaveCard($methodCode)
+    {
+        return $this->methods[$methodCode]->getConfigData('show_save_card') ? true : false;
     }
     
 }

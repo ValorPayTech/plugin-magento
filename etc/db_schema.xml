@@ -21,4 +21,18 @@
     <column xsi:type="varchar" name="valor_rrn" nullable="true" length="100" comment="ValorPay RRN"/>
     <column xsi:type="varchar" name="valor_auth_code" nullable="true" length="100" comment="ValorPay Auth Code"/>
   </table>
+  <table name="valorpay_vault" resource="default" comment="Valorpay Vault">
+    <column xsi:type="int" name="cc_id" identity="true" unsigned="true" nullable="false" comment="Card ID"/>
+    <column xsi:type="int" name="customer_id" nullable="false" comment="Customer ID"/>
+    <column xsi:type="varchar" name="cc_type" nullable="false" length="255" comment="Card Type"/>
+    <column xsi:type="varchar" name="cc_last_4" nullable="false" length="255" comment="Last 4 Digits"/>
+    <column xsi:type="varchar" name="cc_exp_month" nullable="false" length="255" comment="Card Expiry Month"/>
+    <column xsi:type="varchar" name="cc_exp_year" nullable="false" length="255" comment="Card Expiry Year"/>
+    <column xsi:type="text" name="token" nullable="false" comment="Payment Token"/>
+    <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+    <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+        <column name="cc_id"/>
+    </constraint>
+  </table>
 </schema>

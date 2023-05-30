@@ -37,7 +37,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
         </label>
         <div class="admin__field-control">
             <input type="text" id="<?= /* @noEscape */ $code ?>_cc_number" name="payment[cc_number]"
-                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>" onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;" 
+                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>" onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;"
                    class="admin__control-text validate-cc-number"
                    value="<?= /* @noEscape */ $block->getInfoData('cc_number') ?>"/>
             <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
@@ -89,9 +89,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                 <span><?= $block->escapeHtml(__('Card Verification Number')) ?></span>
             </label>
             <div class="admin__field-control">
-                <input type="text" title="<?= $block->escapeHtml(__('Card Verification Number')) ?>"
-                       onKeyDown="if(this.value.length==4 && event.keyCode!=8) return false;"  
-                       class="required-entry validate-cc-cvn admin__control-cvn admin__control-text"
+                <input type="text" title="<?= $block->escapeHtml(__('Card Verification Number')) ?>" onKeyDown="if(this.value.length==4 && event.keyCode!=8) return false;" class="required-entry validate-cc-cvn admin__control-cvn admin__control-text"
                        id="<?= /* @noEscape */ $code ?>_cc_cid"
                        name="payment[cc_cid]" value="<?= /* @noEscape */ $block->getInfoData('cc_cid') ?>"/>
                 <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
@@ -112,30 +110,30 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             </div>
         </div>
     <?php endif; ?>
-		<?php if ($block->hasAVSZip()): ?>
-		<div class="required admin__field _required avs-zipcode">
-			<label for="<?= /* @noEscape */ $code ?>_avs_zipcode" class="admin__field-label">
-				<span><?= $block->escapeHtml(__('Zip Code')) ?></span>
-			</label>
-			<div class="admin__field-control">
-				<input type="text" name="payment[avs_zipcode]" title="<?= $block->escapeHtml(__('Zip Code')) ?>" class="required-entry admin__control-text" 
-				id="<?= /* @noEscape */ $code ?>_avs_zipcode" value="<?= /* @noEscape */ $block->getInfoData('avs_zipcode') ?>" />
-			</div>
-		</div>
-		<?php endif; ?>
+        <?php if ($block->hasAVSZip()): ?>
+        <div class="required admin__field _required avs-zipcode">
+            <label for="<?= /* @noEscape */ $code ?>_avs_zipcode" class="admin__field-label">
+                <span><?= $block->escapeHtml(__('Zip Code')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input type="text" name="payment[avs_zipcode]" title="<?= $block->escapeHtml(__('Zip Code')) ?>" class="required-entry admin__control-text" 
+                id="<?= /* @noEscape */ $code ?>_avs_zipcode" value="<?= /* @noEscape */ $block->getInfoData('avs_zipcode') ?>" />
+            </div>
+        </div>
+        <?php endif; ?>
 
-		<?php if ($block->hasAVSAddress()): ?>
-		<div class="required admin__field _required avs-address">
-			<label for="<?= /* @noEscape */ $code ?>_avs_zipcode" class="admin__field-label">
-				<span><?= $block->escapeHtml(__('Address')) ?></span>
-			</label>
-			<div class="admin__field-control">
-				<input type="text" name="payment[avs_address]" title="<?= $block->escapeHtml(__('Address')) ?>" class="required-entry admin__control-text" 
-				id="<?= /* @noEscape */ $code ?>_avs_address" value="<?= /* @noEscape */ $block->getInfoData('avs_address') ?>" />
-			</div>
-		</div>
-		<?php endif; ?>
-	
+        <?php if ($block->hasAVSAddress()): ?>
+        <div class="required admin__field _required avs-address">
+            <label for="<?= /* @noEscape */ $code ?>_avs_zipcode" class="admin__field-label">
+                <span><?= $block->escapeHtml(__('Address')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input type="text" name="payment[avs_address]" title="<?= $block->escapeHtml(__('Address')) ?>" class="required-entry admin__control-text" 
+                id="<?= /* @noEscape */ $code ?>_avs_address" value="<?= /* @noEscape */ $block->getInfoData('avs_address') ?>" />
+            </div>
+        </div>
+        <?php endif; ?>
+    
 </fieldset>
 <?= /* @noEscape */ $secureRenderer->renderStyleAsTag(
     "display:none",
@@ -145,28 +143,28 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
 jQuery(document).ready(function() {
     jQuery("#order-billing_address_street0").change(function(){
       
-      	jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
-      	
+        jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
+        
     });
     jQuery("#order-billing_address_postcode").change(function(){
-    	
-    	jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
-      	
+        
+        jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
+        
     });
     
     setTimeout(function() {
-    	jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
-    	jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
+        jQuery("#valorpay_gateway_avs_address").val( jQuery("#order-billing_address_street0").val() );
+        jQuery("#valorpay_gateway_avs_zipcode").val( jQuery("#order-billing_address_postcode").val() );
     },2000);
     
     jQuery("input").each(function() {
-    	if( jQuery(this).attr('name') == 'payment[method]' ) {
-		jQuery(this).on('change',function(){
-			jQuery('order-shipping-method-info').hide();
-			jQuery('order-shipping-method-choose').show();
-			order.setShippingMethod(null);
-    		});
-    	}
+        if( jQuery(this).attr('name') == 'payment[method]' ) {
+        jQuery(this).on('change',function(){
+            jQuery('order-shipping-method-info').hide();
+            jQuery('order-shipping-method-choose').show();
+            order.setShippingMethod(null);
+            });
+        }
     });
 });
 </script>

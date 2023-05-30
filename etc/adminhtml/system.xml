@@ -96,6 +96,14 @@
 		  <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 		  <comment><![CDATA[Set Yes to show logo at checkout page OR Set No to show only title while selecting payment method.]]></comment>
 		</field>
+
+        <!--added starts-->
+        <field id="show_save_card" translate="label comment" type="select" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Allow accounts to save card</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>If yes, customers can choose whether to save their data during checkout.</comment>
+        </field>
+        <!--added ends-->
             </group>
         </section>
     </system>
