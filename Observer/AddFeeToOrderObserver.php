@@ -22,7 +22,6 @@ class AddFeeToOrderObserver implements ObserverInterface
     
         $this->_inputParamsResolver = $inputParamsResolver;
         $this->_state = $state;
-        
     }
 	
     /**
@@ -54,15 +53,21 @@ class AddFeeToOrderObserver implements ObserverInterface
 					if( isset($paymentData) && count($paymentData) > 0 ) {
 						$paymentOrder->setAdditionalInformation('avs_zipcode', $paymentData['avs_zipcode']);
 						$paymentOrder->setAdditionalInformation('avs_address', $paymentData['avs_address']);
+						$paymentOrder->setAdditionalInformation('terms_checked', $paymentData['terms_checked']);
+						$paymentOrder->setAdditionalInformation('save', $paymentData['save']);
+						$paymentOrder->setAdditionalInformation('vault_token', $paymentData['vault_token']);
+						$paymentOrder->setAdditionalInformation('cc_last_4', $paymentData['cc_last_4']);
 					}
 				}
 			}
 
 		}
-	
+
 	}
 	
 	$ValorFee = $quote->getValorpayGatewayFee();
+	$BaseValorFee = $quote->getBaseValorpayGatewayFee();
+	
 	if (!$ValorFee) {
 	    return $this;
 	}
@@ -70,7 +75,7 @@ class AddFeeToOrderObserver implements ObserverInterface
 	$order = $observer->getOrder();
 	if( isset($order) ) {
 		$order->setData('valorpay_gateway_fee', $ValorFee);
-        	$order->setData('base_valorpay_gateway_fee', $ValorFee);
+        	$order->setData('base_valorpay_gateway_fee', $BaseValorFee);
 	}
 	
 	return $this;

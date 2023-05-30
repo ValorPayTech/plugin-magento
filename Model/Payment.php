@@ -30,6 +30,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_countryFactory;
     protected $_request;
     protected $_data;
+
+    protected $_ccFactory;
+    protected $customerSession;
     
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
@@ -48,6 +51,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
         \Magento\Sales\Model\OrderRepository $orderRepository,
         \Magento\Framework\App\Request\Http $request,
+        \ValorPay\CardPay\Model\CcFactory $ccFactory,
+    	\Magento\Customer\Model\Session $customerSession,
         array $data = array()
     ) {
 		
@@ -77,6 +82,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		$this->_remoteAddress = $remoteAddress;
 
 		$this->_orderRepository = $orderRepository;
+
+		$this->_ccFactory = $ccFactory;
+        $this->customerSession  = $customerSession;
         
     }
     
@@ -90,12 +98,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
 	    if( $surchargeIndicator == 1 ) {
 		
-			if( $surchargeType == "flatrate" )
-				$surchargeAmount = (float)$surchargeFlatRate;
-			else {
-				$total = $order->getData('base_subtotal');
-				$surchargeAmount = (float)(($total*$surchargePercentage)/100);
-			}
+			$surchargeAmount = $order->getData('base_valorpay_gateway_fee');
 		
 	    } else {
 
@@ -117,9 +120,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     	    
 		if( $sandbox == 1 )	{
 			
-			$this->_valor_api_url = 'https://securelinktest.valorpaytech.com:4430'; 
+			$this->_valor_api_url = 'https://securelinktest.valorpaytech.com:4430';
 			$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
-			
+		
 		}
 
     	$this->_curl->post($this->_valor_api_url, json_encode($requestData));
@@ -169,9 +172,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $surchargeAmount = $this->get_surcharge_fee($order);
             
-			$tax = $order->getBaseTaxAmount();
-
-            $amount = $amount - $tax - $surchargeAmount;
+            $amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
             
             $payment_array = $this->_request->getParam('payment');
 	    
@@ -187,6 +188,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
 	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
             $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+
+        if($payment->getAdditionalInformation('vault_token')){
+        	$expirydate = '';
+        	$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
+        }else{
+        	$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
+        }    
             
             $requestData = array(
 		'appid' => $this->getConfigData('appid'),
@@ -213,7 +221,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'status' => 'Y',
 		'cvv' => $payment->getCcCid(),
 		'cardholdername' => $billing->getName(),
-		'expirydate' => sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2)
+		'expirydate' => $expirydate,
+		'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
+		'token' => $payment->getAdditionalInformation('vault_token')
             );
             
             $response = $this->post_transaction($requestData);
@@ -241,6 +251,23 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
             $order->addCommentToStatusHistory($response_string);
 	    $this->_orderRepository->save($order);
+
+		    if($payment->getAdditionalInformation('save')==1 && $payment->getCcNumber()){
+
+				$customer_id=$this->customerSession->getCustomer()->getId();
+				$saveCard = $this->_ccFactory->create();
+
+				$saveCard->setData([
+					"customer_id" => $customer_id,
+					"cc_type" => $payment->getCcType(),
+					"cc_last_4" => substr($payment->getCcNumber(), -4),
+					"cc_exp_month" => sprintf("%02d", $payment->getCcExpMonth()),
+					"cc_exp_year" => $payment->getCcExpYear(),
+					"token" => $response->token
+				]);
+
+	        	$saveCard->save();
+			}
     
         } catch (\Exception $e) {
             $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
@@ -277,9 +304,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	                
             $surchargeAmount = $this->get_surcharge_fee($order);
             
-			$tax = $order->getBaseTaxAmount();
-
-            $amount = $amount - $tax - $surchargeAmount;
+            $amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
             
             $payment_array = $this->_request->getParam('payment');
 	    
@@ -295,6 +320,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    
 	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
             $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+
+        if($payment->getAdditionalInformation('vault_token')){
+        	$expirydate = '';
+        	$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
+        }else{
+        	$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
+        }    
             
             $requestData = array(
 		'appid' => $this->getConfigData('appid'),
@@ -321,7 +353,9 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		'status' => 'Y',
 		'cvv' => $payment->getCcCid(),
 		'cardholdername' => $billing->getName(),
-		'expirydate' => sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2)
+		'expirydate' => $expirydate,
+		'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
+		'token' => $payment->getAdditionalInformation('vault_token')
             );
             
             $response = $this->post_transaction($requestData);
@@ -348,7 +382,24 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    );
             
             $order->addCommentToStatusHistory($response_string);
-	    $this->_orderRepository->save($order);   
+	    	$this->_orderRepository->save($order);  
+
+		    if($payment->getAdditionalInformation('save')==1 && $payment->getCcNumber()){
+
+				$customer_id=$this->customerSession->getCustomer()->getId();
+				$saveCard = $this->_ccFactory->create();
+
+				$saveCard->setData([
+					"customer_id" => $customer_id,
+					"cc_type" => $payment->getCcType(),
+					"cc_last_4" => substr($payment->getCcNumber(), -4),
+					"cc_exp_month" => sprintf("%02d", $payment->getCcExpMonth()),
+					"cc_exp_year" => $payment->getCcExpYear(),
+					"token" => $response->token
+				]);
+
+	        	$saveCard->save();
+			}
 
         } catch (\Exception $e) {
             if( isset($requestData) ) $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
@@ -454,5 +505,4 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
  
         return parent::isAvailable($quote);
     }
-    
 }

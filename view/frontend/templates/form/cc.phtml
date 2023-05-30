@@ -142,6 +142,15 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
         </div>
     </div>
     <?php endif; ?>
+
+    <div class="field">
+        <div class="control">
+            <input type="checkbox" name="payment[terms_checked]" class="checkbox" id="<?php /* @noEscape */ echo $code; ?>_terms_checked" value="1" checked/><label
+                class="label" for="<?php /* @noEscape */ echo $code; ?>_terms_checked">
+                <span><?= $block->escapeHtml(__('I agree to the')) ?> <a href="https://valorpaytech.com/privacy-policy/" target="_blank"><?= $block->escapeHtml(__('Terms And Conditions')) ?></a></span></label>
+        </div>
+    </div>
+    
     <?= $block->getChildHtml() ?>
 </fieldset>
 <?= /* @noEscape */ $secureRenderer->renderStyleAsTag(

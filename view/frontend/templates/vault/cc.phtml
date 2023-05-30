@@ -1,0 +1,60 @@
+<?php
+    $cardCollection=$block->getCardCollection();
+
+?>
+<?php if (count($cardCollection)): ?>
+    <div class="table-wrapper my-credit-cards">
+        <table class="data table table-credit-cards" id="my-orders-table">
+            <caption class="table-caption"><?= $block->escapeHtml(__('Stored Payment Methods')) ?></caption>
+            <thead>
+            <tr>
+                <th scope="col" class="col card-number"><?= $block->escapeHtml(__('Card Number')) ?></th>
+                <th scope="col" class="col expire"><?= $block->escapeHtml(__('Expiration Date')) ?></th>
+                <th scope="col" class="col card-type"><?= $block->escapeHtml(__('Type')) ?></th>
+                <th scope="col" class="col actions">&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($cardCollection as $card): ?>
+                <tr>
+                    <td data-th="<?= $block->escapeHtml(__('Card Number')) ?>" class="col card-number">
+                        <span><?= $block->escapeHtml(__('ending')) ?></span> <?= $block->escapeHtml($card->getCcLast4()) ?>
+                    </td>
+                    <td data-th="<?= $block->escapeHtml(__('Expiration Date')) ?>" class="col card-expire">
+                        <?= $block->escapeHtml($card->getCcExpMonth()."/".$card->getCcExpYear()) ?>
+                    </td>
+                    <td data-th="<?= $block->escapeHtml(__('Type')) ?>" class="col card-type">
+                        <img src="<?= /* @noEscape */ $block->getIconUrl($card->getCcType()) ?>"
+             width="<?= /* @noEscape */ $block->getIconWidth($card->getCcType()) ?>"
+             height="<?= /* @noEscape */ $block->getIconHeight($card->getCcType()) ?>"/>
+
+                    </td>
+                    <td data-th="<?= $block->escapeHtml(__('Actions')) ?>" class="col actions">
+                        <form
+                            class="form"
+                            action="<?= $block->escapeUrl($block->getUrl('valor/vault/deleteaction')) ?>"
+                            method="post"
+                            >
+                            <input type="hidden" value="<?= $block->escapeHtml($card->getCcId()) ?>" name="cc_id"/>
+                            
+                            <button type="submit"
+                                    class="action delete"
+                                    data-mage-init='{
+                                                    "Magento_Vault/js/customer_account/deleteWidget":{
+                                                        "type": "popup",
+                                                        "modalClass": "my-credit-cards-popup",
+                                                        "toggleEvent": "click",
+                                                        "title": "<?= $block->escapeHtml(__('Delete')) ?>",
+                                                        "content": "<?= $block->escapeHtml(__('Are you sure you want to delete this card: %1?', $block->escapeHtml($card->getCcLast4()))) ?>"
+                                                    }
+                                                }'>
+                                <span><?= $block->escapeHtml(__('Delete')) ?></span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?> 
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>
