@@ -2,7 +2,10 @@
     "name": "valorpaytech/plugin-magento",
     "description": "ValorpayTech Payment Gateway module for Magento",
     "require": {
-        "php": ">=7.3"
+        "php": ">=7.3",
+	"magento/module-sales": "*",
+        "magento/module-checkout": "*",
+        "magento/module-payment": "*"
     },
     "type": "magento2-module",
     "version": "2.0.0",
