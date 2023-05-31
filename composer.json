@@ -1,5 +1,5 @@
 {
-    "name": "valorpay/plugin-magento",
+    "name": "valorpaytech/plugin-magento",
     "description": "ValorpayTech Payment Gateway module for Magento",
     "require": {
         "php": ">=7.3",
