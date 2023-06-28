@@ -48,8 +48,30 @@
 			    <legend class="legend">
 			        <span><!-- ko i18n: 'Credit Card Information'--><!-- /ko --></span>
 			    </legend><br />
-			    <!-- /ko -->
-			    <div class="field type">
+			    <!-- /ko --> 
+
+                <!-- ko if: (showCards() && canSaveCard())-->
+	            <div class="field card_list">
+	                <label data-bind="attr: {for: getCode() + '_card_id'}" class="label">
+	                    <span><!-- ko text: $t('Payment Informations')--><!-- /ko --></span>
+	                </label>
+	                <div class="control" style="position: relative;">
+	                    <select name="payment[cc_id]" class="select input-text required-entry" 
+                            data-bind="
+                                attr: {id: getCode()+'_cc_id'},
+                                options: getCardList(),
+                                optionsValue: 'value',
+                                optionsText: 'type',
+                                optionsCaption: $t('--Please Select--'),
+                                event:{ change: addNewCard()}
+                                " style="padding-left:60px">
+                		</select>
+                		<div id="card_logo" style="position:absolute;top:4px;left:4px"></div>
+	                </div>
+	            </div>
+	            <!-- /ko -->
+
+			    <div class="field type hide-if-cards-available">
 			        <div class="control">
 			            <ul class="credit-card-types">
 			                <!-- ko foreach: {data: getCcAvailableTypesValues(), as: 'item'} -->
@@ -77,12 +99,13 @@
 			                   ">
 			        </div>
 			    </div>
-			    <div class="field number required">
+			    
+			    <div class="field number required hide-if-cards-available">
 			        <label data-bind="attr: {for: getCode() + '_cc_number'}" class="label">
 			            <span><!-- ko i18n: 'Credit Card Number'--><!-- /ko --></span>
 			        </label>
 			        <div class="control">
-			            <input type="number" name="payment[cc_number]" class="input-text" onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;" value=""
+			            <input type="number" name="payment[cc_number]" class="input-text cc_number" onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;" value=""
 			                   oncopy="return false;"
 			                   oncut="return false;"
 			                   onpaste="return false;"
@@ -94,10 +117,11 @@
 			                                    'data-validate': JSON.stringify({'required-number':true, 'validate-card-type':getCcAvailableTypesValues(), 'validate-card-number':'#' + getCode() + '_cc_type', 'validate-cc-type':'#' + getCode() + '_cc_type'})},
 			                              enable: isActive($parents),
 			                              value: creditCardNumber,
-			                              valueUpdate: 'keyup' "/>
+			                              valueUpdate: 'keyup'"/>
 			        </div>
 			    </div>
-			    <div class="field date required" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
+			    
+			    <div class="field date required hide-if-cards-available" data-bind="attr: {id: getCode() + '_cc_type_exp_div'}">
 			        <label data-bind="attr: {for: getCode() + '_expiration'}" class="label">
 			            <span><!-- ko i18n: 'Expiration Date'--><!-- /ko --></span>
 			        </label>
@@ -135,7 +159,7 @@
 			        </div>
 			    </div>
 			    <!-- ko if: (hasVerification())-->
-			    <div class="field cvv required" data-bind="attr: {id: getCode() + '_cc_type_cvv_div'}">
+			    <div class="field cvv required hide-if-cards-available" data-bind="attr: {id: getCode() + '_cc_type_cvv_div'}">
 			        <label data-bind="attr: {for: getCode() + '_cc_cid'}" class="label">
 			            <span><!-- ko i18n: 'Card Verification Number'--><!-- /ko --></span>
 			        </label>
@@ -144,7 +168,7 @@
 			                   autocomplete="off"
 			                   class="input-text cvv"
 			                   name="payment[cc_cid]"
-							   onKeyDown="if(this.value.length==4 && event.keyCode!=8) return false;"
+			                   onKeyDown="if(this.value.length==4 && event.keyCode!=8) return false;"
 			                   value=""
 			                   oncopy="return false;"
 			                   oncut="return false;"
@@ -154,7 +178,7 @@
 			                        'data-container': getCode() + '-cc-cvv',
 			                        'data-validate': JSON.stringify({'required-number':true, 'validate-card-cvv':'#' + getCode() + '_cc_type'})},
 			                        enable: isActive($parents),
-			                        value: creditCardVerificationNumber" />
+			                        value: creditCardVerificationNumber, valueUpdate: 'keyup'" />
 			            <div class="field-tooltip toggle">
 			                <span class="field-tooltip-action action-cvv"
 			                      tabindex="0"
@@ -193,6 +217,26 @@
 						</div>
 					</div>
 					<!-- /ko -->
+				</div>
+				<!-- ko if: (canSaveCard() && showSaveCard())-->
+	            <div class="field hide-if-cards-available">
+	                <div class="control">
+	                    <input type="checkbox"
+	                           name="payment[save]"
+	                           class="checkbox"
+	                           data-bind="attr: {id: getCode() + '-save'}"/>
+	                    <label class="label" data-bind="attr: {for: getCode() + '-save'}">
+	                        <span><!-- ko text: $t('Save for next time')--><!-- /ko --></span>
+	                    </label>
+	                </div>
+	            </div>
+	            <!-- /ko -->
+	            <div class="field">
+					<div class="control"><input type="checkbox" name="payment[terms_checked]" class="checkbox"
+							data-bind="attr: {id: getCode() + '_terms_checked'}, checked: true" /><label
+							class="label" data-bind="attr: {for: getCode() + '_terms_checked'}">
+							<span><!-- ko text: $t('I agree to the')--><!-- /ko --> <a href="https://valorpaytech.com/privacy-policy/" target="_blank"><!-- ko text: $t('Terms And Conditions')--><!-- /ko --></a></span></label>
+					</div>
 				</div>
 			</fieldset>
         </form>

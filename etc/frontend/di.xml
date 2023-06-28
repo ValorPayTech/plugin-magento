@@ -23,5 +23,13 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Vault\Block\Customer\PaymentTokens">
+        <plugin name="valor_cards_available" type="ValorPay\CardPay\Plugin\Vault\VaultCards" sortOrder="10" />
+    </type>
+
+    <type name="Magento\Multishipping\Controller\Checkout\Overview">
+        <plugin name="valor_multishipping_terms_checked" type="ValorPay\CardPay\Plugin\Multishipping\Overview" sortOrder="11" />
+    </type>
     
 </config>

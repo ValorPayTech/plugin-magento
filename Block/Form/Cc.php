@@ -40,10 +40,10 @@ class Cc extends \Magento\Payment\Block\Form
         $version = $productMetadata->getVersion();
         $version_prefix = $string->substr($version,2,1);
         if( $version_prefix >= 4 ) {
-        	$this->_template = 'ValorPay_CardPay::form/cc.phtml';
+            $this->_template = 'ValorPay_CardPay::form/cc.phtml';
         }
         else {
-        	$this->_template = 'ValorPay_CardPay::form/cc_version_2_3.phtml';
+            $this->_template = 'ValorPay_CardPay::form/cc_version_2_3.phtml';
         }
     }
 
@@ -127,11 +127,11 @@ class Cc extends \Magento\Payment\Block\Form
      */
     public function hasAVSZip()
     {
-    	$avs_type = $this->getMethod()->getConfigData('avs_type');
-    	if( $avs_type == "zip" || $avs_type == "zipandaddress" )
-    		return true;
-    	else
-    		return false;
+        $avs_type = $this->getMethod()->getConfigData('avs_type');
+        if( $avs_type == "zip" || $avs_type == "zipandaddress" )
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -142,11 +142,11 @@ class Cc extends \Magento\Payment\Block\Form
      */
     public function hasAVSAddress()
     {
-    	$avs_type = $this->getMethod()->getConfigData('avs_type');
-    	if( $avs_type == "address" || $avs_type == "zipandaddress" )
-    		return true;
-    	else
-    		return false;
+        $avs_type = $this->getMethod()->getConfigData('avs_type');
+        if( $avs_type == "address" || $avs_type == "zipandaddress" )
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -158,11 +158,11 @@ class Cc extends \Magento\Payment\Block\Form
     protected function showLogo($methodCode)
     {
     
-    	$show_logo = $this->getMethod()->getConfigData('show_logo');
-    	if( $show_logo == 1 )
-    		return true;
-    	else
-    		return false;
+        $show_logo = $this->getMethod()->getConfigData('show_logo');
+        if( $show_logo == 1 )
+            return true;
+        else
+            return false;
     }
 
     /**

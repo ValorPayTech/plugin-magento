@@ -61,9 +61,9 @@ class ValorpayGatewayFee extends AbstractTotal
 
         $total->setTotalAmount(static::TOTAL_CODE, $valorPayFee);
         $total->setBaseTotalAmount(static::TOTAL_CODE, $baseValorPayFee);
-	
-	// Make sure that quote is also updated
-	$quote->setValorpayGatewayFee($valorPayFee);
+        
+	    // Make sure that quote is also updated
+	    $quote->setValorpayGatewayFee($valorPayFee);
         $quote->setBaseValorpayGatewayFee($baseValorPayFee);
         
         return $this;
@@ -110,10 +110,32 @@ class ValorpayGatewayFee extends AbstractTotal
            return (float)null;
         }
         
-	if( $this->surchargeType == "flatrate" )
-        	return (float)$this->surchargeFlatRate;
+    	if( $this->surchargeType == "flatrate" ){
+            
+            // if($quote->getIsMultiShipping()){
+
+            //         $addCount=count($quote->getAllShippingAddresses());
+
+            //         $surchargeAmount=(float)(($this->surchargeFlatRate)/$addCount);
+
+            //         return $surchargeAmount;
+                        
+            // }
+            return (float)$this->surchargeFlatRate;
+        }
         else {
+            
         	$total = $quote->getBaseSubtotal();
+
+            // if($quote->getIsMultiShipping()){
+
+            //     $addCount=count($quote->getAllShippingAddresses());
+
+            //     $surchargeAmount=(float)((($total*$this->surchargePercentage)/100)/$addCount);
+
+            //     return $surchargeAmount;
+                    
+            // }
         	return (float)(($total*$this->surchargePercentage)/100);
         }
     }

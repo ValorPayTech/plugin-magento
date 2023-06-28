@@ -51,6 +51,7 @@ class Totals extends Template
                 'code' => 'valorpay_gateway_fee',
                 'strong' => false,
                 'value' => $this->getSource()->getValorpayGatewayFee(),
+                'base_value' => $this->getSource()->getBaseValorpayGatewayFee(),
                 'label' => __($this->surchargeLabel),
             ]
         );

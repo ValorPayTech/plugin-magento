@@ -21,4 +21,12 @@
     <column xsi:type="varchar" name="valor_rrn" nullable="true" length="100" comment="ValorPay RRN"/>
     <column xsi:type="varchar" name="valor_auth_code" nullable="true" length="100" comment="ValorPay Auth Code"/>
   </table>
+  <table name="valorpay_vault" resource="default" comment="Valorpay Vault">
+    <column xsi:type="int" name="cc_id" identity="true" unsigned="true" nullable="false" comment="Card ID"/>
+    <column xsi:type="int" name="customer_id" nullable="false" comment="Customer ID"/>
+    <column xsi:type="int" name="vault_customer_id" nullable="false" comment="ValorPay Vault Customer ID"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+        <column name="cc_id"/>
+    </constraint>
+  </table>
 </schema>
