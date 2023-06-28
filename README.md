@@ -1,13 +1,13 @@
 # ValorPayTech Payment Module for Magento 2 CE
 
-![Packagist Version](https://img.shields.io/packagist/v/valorpay/plugin-magento?label=stable) [![License](http://poser.pugx.org/valorpay/plugin-magento/license)](https://packagist.org/packages/valorpay/plugin-magento)
+![Packagist Version](https://img.shields.io/packagist/v/valorpaytech/plugin-magento?label=stable) [![License](http://poser.pugx.org/valorpaytech/plugin-magento/license)](https://packagist.org/packages/valorpaytech/plugin-magento)
 
 This is a Payment Module for Magento 2 Community Edition, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.
 
 ## Requirements
 
-  * Magento Community Edition (CE) versions (Tested on 2.3.5, 2.3.7, 2.4.2, 2.4.4 and 2.4.5-p1)
-  * PHP Versions >= 7.3       [![PHP Version Require](http://poser.pugx.org/valorpay/plugin-magento/require/php)](https://packagist.org/packages/valorpay/plugin-magento)
+  * Magento Community Edition (CE) versions (Tested on 2.3.5, 2.3.7, 2.4.2, 2.4.4, 2.4.5-p1 2.4.5-p2 and 2.4.6)
+  * PHP Versions >= 7.3       [![PHP Version Require](http://poser.pugx.org/valorpaytech/plugin-magento/require/php)](https://packagist.org/packages/valorpaytech/plugin-magento)
   
 *Note:* this module has been tested only with Magento 2 __Community Edition__, it may not work as intended with Magento 2 __Enterprise Edition__
 
@@ -18,7 +18,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
   * Install Payment Module
 
     ```sh
-    $ composer require valorpay/plugin-magento
+    $ composer require valorpaytech/plugin-magento
     ```
 
   * Enable Payment Module
@@ -53,7 +53,7 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
 
 ## Installation (manual)
 
-  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-magento/archive/refs/heads/main.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
+  * [Download the Payment Module archive](https://github.com/ValorPayTech/plugin-magento/archive/refs/heads/main.zip), unpack it and upload its contents to a new folder ```<root>/app/code/valorpay/cardpay/``` of your Magento 2 installation
 
   * Enable Payment Module
 
