@@ -56,11 +56,9 @@
 	  "repositories": [
 	    {
 	      "type": "git",
-	      "url": "https://github.com/ValorPayTech/plugin-magento.git"
+	      "url": "https://github.com/ValorPayTech/plugin-magento/releases/tag/dev-develop",
+	       "branch": "dev-develop"
 	    }
-	  ],	
-	  "require": {
-	    "valorpaytech/plugin-magento": "dev-develop"
-	  }
+	  ]
    }
 }
