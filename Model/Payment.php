@@ -291,20 +291,24 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
 		if($payment->getAdditionalInformation('save') == 1 && $payment->getCcNumber()){
 
-			$customer_id=$this->customerSession->getCustomer()->getId();
-			$customerData = $this->_customerRepository->getById($customer_id);
-			$_vault_customer_id = $customerData->getCustomAttribute('_vault_customer_id')->getValue();
+			$customer_id = $this->customerSession->getCustomer()->getId();
+			
+			$_vault_customer_id = $this->get_vault_customer_id($customer_id);
 
 			//if not then create new customer valorpay vault account and get vault customer id
-			if (empty($_vault_customer_id)) {	
+			if (empty($_vault_customer_id)) {
 				
 				$_vault_customer_id = $this->create_customer_profile( $order, $valor_avs_street, $valor_avs_zip );
 				
-				$customerData->setCustomAttribute('_vault_customer_id',$_vault_customer_id);
-				$this->_customerRepository->save($customerData);
+				$saveCard = $this->_ccFactory->create();
+
+				$saveCard->setData([
+					"customer_id" => $customer_id,
+					"vault_customer_id" => $_vault_customer_id
+				])->save();
 
 			}
-			
+
 			//add new card to customer vault account  
 			if( $_vault_customer_id ) {
 				
@@ -313,7 +317,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 				$this->create_payment_profile( $_vault_customer_id, $payment->getCcNumber(), $payment->getCcExpMonth(), $payment->getCcExpYear(), $cardholdername  );	
 				
 			}
-			
+
 		}
 
         return $this;

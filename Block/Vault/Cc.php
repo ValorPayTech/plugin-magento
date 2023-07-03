@@ -137,6 +137,8 @@ class Cc extends Template
             if( isset($payment_profile) && $payment_profile->status == "OK" && count($payment_profile->data) > 0 ) {
                 foreach($payment_profile->data as $single_key => $single_data) {
 
+                        if( $single_data->card_brand == "Amex" ) $single_data->card_brand = "American Express";
+                        if( $single_data->card_brand == "Unknown" ) $single_data->card_brand = "Diners";
                         $cc_type = "";
                         if( isset($cardTypes) && count($cardTypes) > 0 ) {
                             foreach($cardTypes as $single_key => $single_type) {

@@ -48,5 +48,10 @@
         "psr-4": {
             "ValorPay\\CardPay\\": ""
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev": "2.0.1-dev"
+        }
     }
 }

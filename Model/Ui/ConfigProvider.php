@@ -412,7 +412,7 @@ class ConfigProvider implements ConfigProviderInterface
 
     public function getIconUrl($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['url'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['url']:'';
     }
 
     /**
@@ -420,7 +420,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getIconHeight($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['height'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['height']:0;
     }
 
     /**
@@ -428,7 +428,7 @@ class ConfigProvider implements ConfigProviderInterface
      */
     public function getIconWidth($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['width'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['width']:0;
     }
     
 }
