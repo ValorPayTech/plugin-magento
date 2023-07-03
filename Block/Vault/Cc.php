@@ -178,7 +178,7 @@ class Cc extends Template
 
     public function getIconUrl($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['url'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['url']:'';
     }
 
     /**
@@ -186,7 +186,7 @@ class Cc extends Template
      */
     public function getIconHeight($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['height'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['height']:0;
     }
 
     /**
@@ -194,7 +194,7 @@ class Cc extends Template
      */
     public function getIconWidth($type)
     {
-        return $this->iconsProvider->getIcons()[$type]['width'];
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['width']:0;
     }
 
 }
