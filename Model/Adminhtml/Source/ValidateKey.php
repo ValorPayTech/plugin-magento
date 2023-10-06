@@ -2,7 +2,7 @@
 namespace ValorPay\CardPay\Model\Adminhtml\Source;
 
 /**
- * Class to validate valorpay api keys before saving setting values 
+ * Class to validate valorpay APP keys before saving setting values 
  * if success then proceed and save data otherwise its throw error
  */
 class ValidateKey 
@@ -30,7 +30,8 @@ class ValidateKey
         $authkey   = $groups["valorpay_gateway"]["fields"]["appkey"]["value"];
         $epi       = $groups["valorpay_gateway"]["fields"]["epi"]["value"];
         $authtoken = $groups["valorpay_gateway"]["fields"]["authtoken"]["value"];
-
+        $sandbox   = $groups["valorpay_gateway"]["fields"]["sandbox"]["value"];
+        
         if( $appid == "******" ) return $proceed();
 
         $requestData = array(
@@ -41,9 +42,14 @@ class ValidateKey
             'mtype'      => 'validate'
         );
         
+        $validateurl = "https://vt.valorpaytech.com";
+        if( $sandbox == 1 )	{
+            $validateurl = "https://vt-staging.valorpaytech.com:4430";
+        }
+
         $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
-        $this->_curl->post("https://vt.isoaccess.com:4430", http_build_query($requestData));
+        $this->_curl->post($validateurl, http_build_query($requestData));
          
         //response will contain the output of curl request
         $response = $this->_curl->getBody();
@@ -53,7 +59,7 @@ class ValidateKey
         if( $response->error_no != "00" ) {
                 
             throw new \Magento\Framework\Exception\ValidatorException(
-                __("ValorPay API KEYS Error: (".$response->error_no.") ".$response->mesg.", ".$response->desc)
+                __("ValorPay APP KEYS Error: (".$response->error_no.") ".$response->mesg.", ".$response->desc)
             );
 
         }

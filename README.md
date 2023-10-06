@@ -91,8 +91,8 @@ This is a Payment Module for Magento 2 Community Edition, that gives you the abi
 
 If you setup the module with default values, you can use the test data to make a test payment:
 
-  * API Id ```rPWqbGUwUOH37S2IeLa8GYu9tK3K7jNY```
-  * API Key ```LjTjMu6Asd6ZfNgnQRIBOr54UFYKF6Pi```
+  * APP ID ```rPWqbGUwUOH37S2IeLa8GYu9tK3K7jNY```
+  * APP KEY ```LjTjMu6Asd6ZfNgnQRIBOr54UFYKF6Pi```
   * EPI ```2235560406```
   * Use Sandbox ``Yes``
 

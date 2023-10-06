@@ -76,7 +76,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
 	
 	if( $sandbox == 1 )	{
-		$this->_valor_api_url = 'https://2fademo.isoaccess.com/?main_action=Manage2FA&operation=ecommRefund'; 
+		$this->_valor_api_url = 'https://2fa-staging.valorpaytech.com:4430/?main_action=Manage2FA&operation=ecommRefund'; 
 		$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
 	}
 

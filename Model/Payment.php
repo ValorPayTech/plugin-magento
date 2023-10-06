@@ -120,7 +120,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     	    
 		if( $sandbox == 1 )	{
 			
-			$this->_valor_api_url = 'https://securelinktest.valorpaytech.com:4430';
+			$this->_valor_api_url = 'https://securelink-staging.valorpaytech.com:4430';
 			$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
 		
 		}
