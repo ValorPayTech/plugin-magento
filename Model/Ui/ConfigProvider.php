@@ -47,6 +47,7 @@ class ConfigProvider implements ConfigProviderInterface
 	 * Sandbox vault get payment profile URL
 	 */
 	protected $_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
+    protected $_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_PRODUCTION_URL = 'https://online.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
     
     /**
      * @param CcConfig $ccConfig
@@ -116,7 +117,7 @@ class ConfigProvider implements ConfigProviderInterface
         $appkey = $this->_scopeConfig->getValue('payment/valorpay_gateway/appkey',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $sandbox = $this->_scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
                 
-        $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+        $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id);
         if ( 1 === $sandbox ) {
             $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
         }

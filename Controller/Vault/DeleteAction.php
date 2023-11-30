@@ -15,6 +15,7 @@ class DeleteAction extends \Magento\Framework\App\Action\Action
     * Sandbox vault delete payment profile URL
     */
     protected $_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
+    protected $_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_PRODUCTION_URL = 'https://online.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
    
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -47,7 +48,7 @@ class DeleteAction extends \Magento\Framework\App\Action\Action
         $appkey = $scopeConfig->getValue('payment/valorpay_gateway/appkey',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $sandbox = $scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         
-        $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
+        $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id,$payment_id);
         if ( 1 === $sandbox ) {
             $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
         }
