@@ -219,7 +219,7 @@
 					<!-- /ko -->
 				</div>
 				<!-- ko if: (canSaveCard() && showSaveCard())-->
-	            <div class="field hide-if-cards-available">
+	            <div class="field hide-if-cards-available" style="clear:both;">
 	                <div class="control">
 	                    <input type="checkbox"
 	                           name="payment[save]"
@@ -231,7 +231,7 @@
 	                </div>
 	            </div>
 	            <!-- /ko -->
-	            <div class="field">
+	            <div class="field" style="clear:both;">
 					<div class="control"><input type="checkbox" name="payment[terms_checked]" class="checkbox"
 							data-bind="attr: {id: getCode() + '_terms_checked'}, checked: true" /><label
 							class="label" data-bind="attr: {for: getCode() + '_terms_checked'}">

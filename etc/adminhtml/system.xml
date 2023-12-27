@@ -30,7 +30,7 @@
                 <field id="appid" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>APP ID</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <comment><![CDATA[Please read <a href="https://valorpaytech.com/kb/generating-api-keys-e-commerce/" target="_blank">Valorpaytech Generating APP KEYS ECommerce Guideline</a>]]></comment>
+                    <comment><![CDATA[Please read <a href="https://valorpaytech.com/kb/generating-api-keys-e-commerce/" target="_blank">Valorpaytech Generating API KEYS ECommerce Guideline</a>]]></comment>
                 </field>
                 <field id="appkey" translate="label" type="obscure" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>APP KEY</label>
@@ -38,10 +38,6 @@
                 </field>
                 <field id="epi" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="1">
                     <label>EPI</label>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                </field>
-                <field id="authtoken" translate="label" type="obscure" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="1">
-                    <label>Auth Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
                 <field id="payment_action" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">

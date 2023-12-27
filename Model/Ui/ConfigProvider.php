@@ -10,6 +10,8 @@ use Magento\Payment\Model\CcConfig as CcConfig;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Framework\View\Asset\Repository as Repository; 
 use Magento\Checkout\Model\Cart;
+use ValorPay\CardPay\Model\CcFactory;
+use Magento\Payment\Model\CcConfigProvider;
 
 /**
  * Class ConfigProvider
@@ -22,6 +24,7 @@ class ConfigProvider implements ConfigProviderInterface
      * @var CcConfig
      */
     protected $ccConfig;
+    protected $_ccFactory;
 
     /**
      * @var MethodInterface[]
@@ -34,7 +37,16 @@ class ConfigProvider implements ConfigProviderInterface
 
     protected $customerSession;
 
+    protected $iconsProvider;
+    protected $_curl;
+    protected $_scopeConfig;
+
     protected $cardCollection;
+
+    /**
+     * Sandbox vault get payment profile URL
+     */
+    protected $_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
     
     /**
      * @param CcConfig $ccConfig
@@ -42,22 +54,87 @@ class ConfigProvider implements ConfigProviderInterface
      * @param array $methodCodes
      */
     public function __construct(
+        CcFactory  $ccFactory,
         CcConfig $ccConfig,
         PaymentHelper $paymentHelper,
         Repository $assetRepo,
         Cart $cart,
         \Magento\Customer\Model\Session $customerSession,
         \ValorPay\CardPay\Block\Vault\Cc $cardCollection,
+        \Magento\Framework\HTTP\Client\Curl $curl,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        CcConfigProvider $iconsProvider,
         array $methodCodes = []
     ) {
-    	$this->_assetRepo = $assetRepo;
-	$this->ccConfig = $ccConfig;
-	$this->_billingAddress = $cart->getQuote()->getBillingAddress();
+        $this->_assetRepo = $assetRepo;
+    $this->ccConfig = $ccConfig;
+    $this->_curl = $curl;
+    $this->_scopeConfig = $scopeConfig;
+    $this->_ccFactory = $ccFactory;
+    $this->iconsProvider  = $iconsProvider;
+    $this->_billingAddress = $cart->getQuote()->getBillingAddress();
     $this->customerSession  = $customerSession;
     $this->cardCollection = $cardCollection;
-	foreach ($methodCodes as $code) {
+    foreach ($methodCodes as $code) {
             $this->methods[$code] = $paymentHelper->getMethodInstance($code);
         }
+    }
+
+    /**
+     * Get Vault Customer ID
+     *
+     * @param int $customer_id
+     * @return $_vault_customer_id
+     */
+
+    private function get_vault_customer_id($customer_id) {
+        $_vault_customer_id = 0;
+        $cardModel = $this->_ccFactory->create();
+        $collection = $cardModel->getCollection()->addFieldToFilter('customer_id', $customer_id);
+        if( count($collection) > 0 ) {
+            foreach ($collection as $card) {
+                $_vault_customer_id = $card->getVaultCustomerId();
+                if (!empty($_vault_customer_id)) break;
+            }
+        }
+        return $_vault_customer_id;
+    }
+    
+    /**
+     * Call valor API
+     *
+     * @since 1.0.0
+     *
+     * @param string $requestData JSON payload.
+     * @param string $_vault_customer_id ValorPay Vault Customer ID.
+     * @return string|Error JSON response or a Error on failure.
+     */
+
+    private function post_vault_transaction($_vault_customer_id) 
+    {
+        $appid = $this->_scopeConfig->getValue('payment/valorpay_gateway/appid',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $appkey = $this->_scopeConfig->getValue('payment/valorpay_gateway/appkey',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $sandbox = $this->_scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                
+        $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+        if ( 1 === $sandbox ) {
+            $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+        }
+        
+        $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+        $this->_curl->addHeader("Valor-App-ID", $appid);
+        $this->_curl->addHeader("Valor-App-Key", $appkey);
+        $this->_curl->addHeader("Accept", "application/json");
+        $this->_curl->get($_valor_api_url);
+        $response = $this->_curl->getBody();
+        
+        if ( empty($response) ) return false;
+
+        $parsed_response = json_decode($response);
+
+        return $parsed_response;
+        
     }
 
     public function getStoredCards()
@@ -66,24 +143,42 @@ class ConfigProvider implements ConfigProviderInterface
         $cardDetails=[];
         if($this->canSaveCard())
         {
-            if(count($this->cardCollection->getCardCollection())){
-                $cardCollection = $this->cardCollection->getCardCollection()
-                ->addFieldToSelect(array('cc_id','cc_type','token','cc_exp_month','cc_exp_year','cc_last_4'));
+            
+            $cardTypes          = $this->ccConfig->getCcAvailableTypes();
+            $customer_id        = $this->customerSession->getCustomer()->getId();
+            $_vault_customer_id = $this->get_vault_customer_id($customer_id);
 
-                foreach($cardCollection as $card){
-                    $cardDetails[]    = [
-                            'cc_id'       => $card->getCcId(),
-                            'cc_type'    => $card->getCcType(),
-                            'token' => $card->getToken(),
-                            'cc_exp_month'     => $card->getCcExpMonth(),
-                            'cc_exp_year'     => $card->getCcExpYear(),
-                            'cc_last_4'     => $card->getCcLast4(),
-                            'type_url'    => $this->cardCollection->getIconUrl($card->getCcType()),
-                            'type_width'    => $this->cardCollection->getIconWidth($card->getCcType()),
-                            'type_height'    => $this->cardCollection->getIconHeight($card->getCcType()),
+            $payment_profile    = $this->post_vault_transaction($_vault_customer_id);
+            if( isset($payment_profile) && $payment_profile->status == "OK" && count($payment_profile->data) > 0 ) {
+                foreach($payment_profile->data as $single_key => $single_data) {
+
+                        if( $single_data->card_brand == "Amex" ) $single_data->card_brand = "American Express";
+                        if( $single_data->card_brand == "Unknown" ) $single_data->card_brand = "Diners";
+                        $cc_type = "";
+                        if( isset($cardTypes) && count($cardTypes) > 0 ) {
+                            foreach($cardTypes as $single_key => $single_type) {
+                                if( strtolower($single_type) == strtolower($single_data->card_brand) ) {
+                                    $cc_type = $single_key;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        $cardDetails[]    = [
+                            'cc_id'         => $single_data->payment_id,
+                            'cc_type'       => $cc_type,
+                            'token'         => $single_data->token,
+                            'cc_name'       => $single_data->cardholder_name,
+                            'cc_last_4'     => substr($single_data->masked_pan,4),
+                            'type_url'      => $this->getIconUrl($cc_type),
+                            'type_width'    => $this->getIconWidth($cc_type),
+                            'type_height'   => $this->getIconHeight($cc_type),
                         ];
+
                 }
+
             }
+
         }
 
         return $cardDetails;
@@ -121,12 +216,12 @@ class ConfigProvider implements ConfigProviderInterface
                             'years' => [$methodCode => $this->getCcYears()],
                             'hasVerification' => [$methodCode => $this->hasVerification($methodCode)],
                             'hasAVSZip' => [$methodCode => $this->hasAVSZip($methodCode)],
-			    'hasAVSAddress' => [$methodCode => $this->hasAVSAddress($methodCode)],
-			    'showLogo' => [$methodCode => $this->showLogo($methodCode)],
-			    'getStreet' => [$methodCode => $this->getStreet()],
-			    'getPostcode' => [$methodCode => $this->getPostcode()],
-			    'logoImage' => [$methodCode => $this->_assetRepo->getUrl('ValorPay_CardPay::images/ValorPos.png')],
-			    'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()],
+                'hasAVSAddress' => [$methodCode => $this->hasAVSAddress($methodCode)],
+                'showLogo' => [$methodCode => $this->showLogo($methodCode)],
+                'getStreet' => [$methodCode => $this->getStreet()],
+                'getPostcode' => [$methodCode => $this->getPostcode()],
+                'logoImage' => [$methodCode => $this->_assetRepo->getUrl('ValorPay_CardPay::images/ValorPos.png')],
+                'cvvImageUrl' => [$methodCode => $this->getCvvImageUrl()],
                    'canSaveCard' => [$methodCode => $this->canSaveCard()],
                    'showSaveCard' => [$methodCode => $this->showSaveCard($methodCode)],
                    'storedCards' => [$methodCode => $this->getStoredCards()],
@@ -242,11 +337,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     protected function hasAVSZip($methodCode)
     {
-    	$avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
-    	if( $avs_type == "zip" || $avs_type == "zipandaddress" )
-    		return true;
-    	else
-    		return false;
+        $avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
+        if( $avs_type == "zip" || $avs_type == "zipandaddress" )
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -257,11 +352,11 @@ class ConfigProvider implements ConfigProviderInterface
      */
     protected function hasAVSAddress($methodCode)
     {
-    	$avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
-    	if( $avs_type == "address" || $avs_type == "zipandaddress" )
-    		return true;
-    	else
-    		return false;
+        $avs_type = $this->methods[$methodCode]->getConfigData('avs_type');
+        if( $avs_type == "address" || $avs_type == "zipandaddress" )
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -273,11 +368,11 @@ class ConfigProvider implements ConfigProviderInterface
     protected function showLogo($methodCode)
     {
     
-    	$show_logo = $this->methods[$methodCode]->getConfigData('show_logo');
-    	if( $show_logo == 1 )
-    		return true;
-    	else
-    		return false;
+        $show_logo = $this->methods[$methodCode]->getConfigData('show_logo');
+        if( $show_logo == 1 )
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -289,9 +384,9 @@ class ConfigProvider implements ConfigProviderInterface
     protected function getStreet()
     {
     
-    	$street = $this->_billingAddress->getData('street');
-    	return $street;
-    	
+        $street = $this->_billingAddress->getData('street');
+        return $street;
+        
     }
 
     /**
@@ -304,8 +399,8 @@ class ConfigProvider implements ConfigProviderInterface
     {
     
         $postcode = $this->_billingAddress->getData('postcode');
-    	return $postcode;
-    	
+        return $postcode;
+        
     }
     /*added starts*/
     /**
@@ -316,6 +411,27 @@ class ConfigProvider implements ConfigProviderInterface
     public function showSaveCard($methodCode)
     {
         return $this->methods[$methodCode]->getConfigData('show_save_card') ? true : false;
+    }
+
+    public function getIconUrl($type)
+    {
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['url']:'';
+    }
+
+    /**
+     * @return int
+     */
+    public function getIconHeight($type)
+    {
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['height']:0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIconWidth($type)
+    {
+        return isset($this->iconsProvider->getIcons()[$type])?$this->iconsProvider->getIcons()[$type]['width']:0;
     }
     
 }

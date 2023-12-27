@@ -156,7 +156,7 @@ define(
 		        	var cards=[];
 		        	jQuery.each(this.getStoreCard(),function(index, val){
 		        		//cards.push("xxxx"+val['cc_last_4']+", "+val['cc_exp_month']+"/"+val['cc_exp_year']+", CVV-"+val['cc_cid']);
-		        		cards.push("ending in "+val['cc_last_4']+" (expiry "+val['cc_exp_month']+"/"+val['cc_exp_year']+")");
+		        		cards.push("ending in "+val['cc_last_4']+" ("+val['cc_name']+")");
 		        	});
 		        	cards.push("New Card");
 

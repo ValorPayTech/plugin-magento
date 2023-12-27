@@ -11,17 +11,23 @@ class AddFeeToOrderObserver implements ObserverInterface
 	
     protected $_inputParamsResolver;
     protected $_state;
+    protected $_request;
+    protected $cardCollection;
     
     public function __construct(
     
     	\Magento\Webapi\Controller\Rest\InputParamsResolver $inputParamsResolver,
-    	\Magento\Framework\App\State $state
+    	\Magento\Framework\App\State $state,
+    	\Magento\Framework\App\Request\Http $request,
+    	\ValorPay\CardPay\Block\Vault\Cc $cardCollection
 
     ) 
     {
     
         $this->_inputParamsResolver = $inputParamsResolver;
         $this->_state = $state;
+        $this->_request = $request;
+        $this->cardCollection = $cardCollection;
     }
 	
     /**
@@ -63,6 +69,29 @@ class AddFeeToOrderObserver implements ObserverInterface
 
 		}
 
+	}else{
+
+		$payment_array = $this->_request->getParam('payment');
+
+		if(isset($payment_array['save']))
+            $paymentOrder->setAdditionalInformation('save', 1);
+        else
+           	$paymentOrder->setAdditionalInformation('save', 0); 
+
+		$selectedCard = $this->cardCollection->getCardCollection();
+
+		if((isset($payment_array["cc_id"])) && (count($selectedCard) > $payment_array["cc_id"])) {
+
+			foreach($selectedCard as $index => $card){
+	            if($index == $payment_array["cc_id"])
+	            {
+	            	$paymentOrder->setAdditionalInformation('vault_token', $card->getToken());
+	                $paymentOrder->setAdditionalInformation('cc_last_4', $card->getCcLast4());
+	                break;
+	            }   
+	        }
+		}
+        
 	}
 	
 	$ValorFee = $quote->getValorpayGatewayFee();

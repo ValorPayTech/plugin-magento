@@ -28,7 +28,6 @@
                 <appid></appid>
                 <appkey></appkey>
                 <epi></epi>
-                <authtoken></authtoken>
                 <appid backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <appkey backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <epi backend_model="Magento\Config\Model\Config\Backend\Encrypted" />

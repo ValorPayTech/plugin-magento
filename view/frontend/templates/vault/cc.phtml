@@ -9,7 +9,7 @@
             <thead>
             <tr>
                 <th scope="col" class="col card-number"><?= $block->escapeHtml(__('Card Number')) ?></th>
-                <th scope="col" class="col expire"><?= $block->escapeHtml(__('Expiration Date')) ?></th>
+                <th scope="col" class="col expire"><?= $block->escapeHtml(__('Card Holder Name')) ?></th>
                 <th scope="col" class="col card-type"><?= $block->escapeHtml(__('Type')) ?></th>
                 <th scope="col" class="col actions">&nbsp;</th>
             </tr>
@@ -20,8 +20,8 @@
                     <td data-th="<?= $block->escapeHtml(__('Card Number')) ?>" class="col card-number">
                         <span><?= $block->escapeHtml(__('ending')) ?></span> <?= $block->escapeHtml($card->getCcLast4()) ?>
                     </td>
-                    <td data-th="<?= $block->escapeHtml(__('Expiration Date')) ?>" class="col card-expire">
-                        <?= $block->escapeHtml($card->getCcExpMonth()."/".$card->getCcExpYear()) ?>
+                    <td data-th="<?= $block->escapeHtml(__('Card Holder Name')) ?>" class="col card-expire">
+                        <?= $block->escapeHtml($card->getCcName()) ?>
                     </td>
                     <td data-th="<?= $block->escapeHtml(__('Type')) ?>" class="col card-type">
                         <img src="<?= /* @noEscape */ $block->getIconUrl($card->getCcType()) ?>"
