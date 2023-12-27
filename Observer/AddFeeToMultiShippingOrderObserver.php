@@ -47,7 +47,9 @@ class AddFeeToMultiShippingOrderObserver implements ObserverInterface
 
 			$terms_checked = $this->session->getTermsChecked();
 			$paymentOrder->setAdditionalInformation('terms_checked', $terms_checked);
-
+			$paymentOrder->setAdditionalInformation('vault_token', $this->session->getToken());
+			$paymentOrder->setAdditionalInformation('cc_last_4', $this->session->getCcLast4());
+			$paymentOrder->setAdditionalInformation('save', $this->session->getSave());
 		}
 	
 		$ValorFee = $quote->getValorpayGatewayFee();

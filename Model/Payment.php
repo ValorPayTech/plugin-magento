@@ -19,7 +19,17 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_curl;
     protected $_valor_api_url        = 'https://securelink.valorpaytech.com/';
     
-    protected $_remoteAddress;	
+	/**
+	 * Sandbox vault add customer profile URL
+	 */
+	protected $_WC_VALORPAY_VAULT_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addcustomer';
+
+	/**
+	 * Sandbox vault add payment profile URL
+	 */
+	protected $_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
+
+	protected $_remoteAddress;	
     protected $_orderRepository;
     protected $_isGateway                   = true;
     protected $_canCapture                  = true;
@@ -33,7 +43,17 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 
     protected $_ccFactory;
     protected $customerSession;
-    
+
+	protected $_customer;
+
+	protected $_customerFactory;
+
+	protected $storeManager;
+    protected $customerFactory;
+    protected $customerResource;
+	protected $customerRepoInterface;
+	protected $_adminCustomer;
+
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
     public function __construct(
@@ -53,6 +73,11 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         \Magento\Framework\App\Request\Http $request,
         \ValorPay\CardPay\Model\CcFactory $ccFactory,
     	\Magento\Customer\Model\Session $customerSession,
+		\Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\Customer\Model\ResourceModel\CustomerFactory $customerResource,
+		\Magento\Customer\Api\CustomerRepositoryInterface $customerRepoInterface,
+		\Magento\Sales\Block\Adminhtml\Order\Create\Form\Account $adminCustomer,
         array $data = array()
     ) {
 		
@@ -84,17 +109,23 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		$this->_orderRepository = $orderRepository;
 
 		$this->_ccFactory = $ccFactory;
+
         $this->customerSession  = $customerSession;
+		
+		$this->_customerFactory  = $customerFactory;
         
+		$this->storeManager = $storeManager;
+        $this->customerFactory = $customerFactory;
+        $this->customerResource = $customerResource;
+		$this->customerRepoInterface = $customerRepoInterface;
+		$this->_adminCustomer = $adminCustomer;
+
     }
     
     private function get_surcharge_fee($order) 
     {
     
 	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
-	    $surchargeType       = $this->getConfigData('surchargeType');
-	    $surchargeFlatRate   = $this->getConfigData('surchargeFlatRate');
-	    $surchargePercentage = $this->getConfigData('surchargePercentage');
 
 	    if( $surchargeIndicator == 1 ) {
 		
@@ -248,32 +279,51 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		"<br />",
 		$response->rrn
 	    );
+
 	    
             $order->addCommentToStatusHistory($response_string);
-	    $this->_orderRepository->save($order);
+	    	$this->_orderRepository->save($order);
 
-		    if($payment->getAdditionalInformation('save')==1 && $payment->getCcNumber()){
-
-				$customer_id=$this->customerSession->getCustomer()->getId();
-				$saveCard = $this->_ccFactory->create();
-
-				$saveCard->setData([
-					"customer_id" => $customer_id,
-					"cc_type" => $payment->getCcType(),
-					"cc_last_4" => substr($payment->getCcNumber(), -4),
-					"cc_exp_month" => sprintf("%02d", $payment->getCcExpMonth()),
-					"cc_exp_year" => $payment->getCcExpYear(),
-					"token" => $response->token
-				]);
-
-	        	$saveCard->save();
-			}
-    
         } catch (\Exception $e) {
             $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment capturing error. '.$e->getMessage()));
             throw new \Magento\Framework\Validator\Exception(__('Payment capturing error. '.$e->getMessage()));
         }
+
+		if($payment->getAdditionalInformation('save') == 1 && $payment->getCcNumber()){
+
+			$customer_id = $this->customerSession->getCustomer()->getId();
+
+			if($this->_adminCustomer->getCustomerId()){
+				$customer_id = $this->_adminCustomer->getCustomerId();
+			}
+
+			$_vault_customer_id = $this->get_vault_customer_id($customer_id);
+
+			//if not then create new customer valorpay vault account and get vault customer id
+			if (empty($_vault_customer_id)) {
+				
+				$_vault_customer_id = $this->create_customer_profile( $order, $valor_avs_street, $valor_avs_zip );
+				
+				$saveCard = $this->_ccFactory->create();
+
+				$saveCard->setData([
+					"customer_id" => $customer_id,
+					"vault_customer_id" => $_vault_customer_id
+				])->save();
+
+			}
+			
+			//add new card to customer vault account  
+			if( $_vault_customer_id ) {
+				
+				$cardholdername = $order->getBillingAddress()->getName();
+
+				$this->create_payment_profile( $_vault_customer_id, $payment->getCcNumber(), $payment->getCcExpMonth(), $payment->getCcExpYear(), $cardholdername  );	
+				
+			}
+			
+		}
 
         return $this;
     }
@@ -360,7 +410,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $response = $this->post_transaction($requestData);
 	    
-            $payment
+			$payment
                 ->setTransactionId($response->txnid)
                 ->setIsTransactionClosed(0);
             
@@ -382,24 +432,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	    );
             
             $order->addCommentToStatusHistory($response_string);
-	    	$this->_orderRepository->save($order);  
-
-		    if($payment->getAdditionalInformation('save')==1 && $payment->getCcNumber()){
-
-				$customer_id=$this->customerSession->getCustomer()->getId();
-				$saveCard = $this->_ccFactory->create();
-
-				$saveCard->setData([
-					"customer_id" => $customer_id,
-					"cc_type" => $payment->getCcType(),
-					"cc_last_4" => substr($payment->getCcNumber(), -4),
-					"cc_exp_month" => sprintf("%02d", $payment->getCcExpMonth()),
-					"cc_exp_year" => $payment->getCcExpYear(),
-					"token" => $response->token
-				]);
-
-	        	$saveCard->save();
-			}
+	    	$this->_orderRepository->save($order);
 
         } catch (\Exception $e) {
             if( isset($requestData) ) $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
@@ -407,8 +440,63 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             throw new \Magento\Framework\Validator\Exception(__('Payment capturing error. '.$e->getMessage()));
         }
 
+		if($payment->getAdditionalInformation('save') == 1 && $payment->getCcNumber()){
+
+			$customer_id = $this->customerSession->getCustomer()->getId();
+
+			if($this->_adminCustomer->getCustomerId()){
+				$customer_id = $this->_adminCustomer->getCustomerId();
+			}
+			
+			$_vault_customer_id = $this->get_vault_customer_id($customer_id);
+
+			//if not then create new customer valorpay vault account and get vault customer id
+			if (empty($_vault_customer_id)) {
+				
+				$_vault_customer_id = $this->create_customer_profile( $order, $valor_avs_street, $valor_avs_zip );
+				
+				$saveCard = $this->_ccFactory->create();
+
+				$saveCard->setData([
+					"customer_id" => $customer_id,
+					"vault_customer_id" => $_vault_customer_id
+				])->save();
+
+			}
+
+			//add new card to customer vault account  
+			if( $_vault_customer_id ) {
+				
+				$cardholdername = $order->getBillingAddress()->getName();
+
+				$this->create_payment_profile( $_vault_customer_id, $payment->getCcNumber(), $payment->getCcExpMonth(), $payment->getCcExpYear(), $cardholdername  );	
+				
+			}
+			
+		}
+
         return $this;
     }
+
+    /**
+     * Get Vault Customer ID
+     *
+     * @param int $customer_id
+     * @return $_vault_customer_id
+     */
+
+	private function get_vault_customer_id($customer_id) {
+		$_vault_customer_id = 0;
+		$cardModel = $this->_ccFactory->create();
+		$collection = $cardModel->getCollection()->addFieldToFilter('customer_id', $customer_id);
+		if( count($collection) > 0 ) {
+			foreach ($collection as $card) {
+				$_vault_customer_id = $card->getVaultCustomerId();
+				if (!empty($_vault_customer_id)) break;
+			}
+		}
+		return $_vault_customer_id;
+	}
 
     /**
      * Payment refund
@@ -471,7 +559,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		"<br />",
 		$response->txnid,
 		"<br />",
-		$response->approval_code, 
+		$response->desc, 
 		"<br />",
 		$response->rrn
 	    );
@@ -505,4 +593,158 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
  
         return parent::isAvailable($quote);
     }
+
+	/**********************************************************************************************************/
+	/******************************** V A U L T  C O D E - S T A R T  H E R E *********************************/
+	/******************************************************************************************************** */	
+		
+		/**
+		 * Get the API URL.
+		 *
+		 * @return string
+		 *
+		 * @since 1.0.0
+		 */
+		protected function get_valorpay_vault_url($_vault_customer_id) {
+			$api_url = $this->_WC_VALORPAY_VAULT_SANDBOX_URL;
+			$sandbox = $this->getConfigData('sandbox');
+			if ( !$_vault_customer_id && 1 === $sandbox ) {
+				$api_url = $this->_WC_VALORPAY_VAULT_SANDBOX_URL;
+			}
+			if( $_vault_customer_id ) {
+				$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+				if ( 1 === $sandbox ) {
+					$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+				}
+			}
+			return $api_url;
+		}
+	
+		/**
+		 * Call valor API
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $requestData JSON payload.
+		 * @param string $_vault_customer_id ValorPay Vault Customer ID.
+		 * @param string $list true when listing api called.
+		 * @param string $payment_id pass when delete link clicked to delete selected row.
+		 * @return string|Error JSON response or a Error on failure.
+		 */
+    
+		private function post_vault_transaction($requestData, $_vault_customer_id=0) 
+		{
+			
+			$response = "";
+
+			$this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+			$this->_curl->addHeader("Valor-App-ID", $this->getConfigData('appid'));
+			$this->_curl->addHeader("Valor-App-Key", $this->getConfigData('appkey'));
+			$this->_curl->addHeader("Accept", "application/json");
+			$this->_curl->addHeader("Content-Type", "application/json");
+			$this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
+			$this->_valor_api_url = $this->get_valorpay_vault_url($_vault_customer_id);
+			$this->_curl->post($this->_valor_api_url, $requestData);
+			$response = $this->_curl->getBody();
+				
+			if ( empty($response) ) return false; 
+			
+			$parsed_response = json_decode($response);
+
+			return $parsed_response;
+		
+		}
+	
+		/**
+		 * Create Customer Profile API Action
+		 *
+		 * @since 1.0.0
+		 * @param $order
+		 *
+		 * @return object JSON response
+		 */
+		private function create_customer_profile( $order, $valor_avs_street, $valor_avs_zip ) {
+			
+			/** @var \Magento\Sales\Model\Order\Address $billing */
+			$billing = $order->getBillingAddress();
+			$shipping = $order->getShippingAddress();
+			
+			$billing_name       = $billing->getName();
+			$billing_company    = $billing->getCompany();
+			$billing_phone      = $billing->getTelephone();
+			$billing_email      = $order->getCustomerEmail();
+			$billing_address    = $valor_avs_street;
+			$billing_address2   = $billing->getStreetLine(2);
+			$billing_city       = $billing->getCity();
+			$billing_state      = $billing->getRegionCode();
+			$billing_postcode   = $valor_avs_zip;
+			$shipping_name      = $shipping->getName();
+			$shipping_address   = $shipping->getStreetLine(1);
+			$shipping_address2  = $shipping->getStreetLine(2);
+			$shipping_city      = $shipping->getCity();
+			$shipping_state     = $shipping->getRegionCode();
+			$shipping_postcode  = $shipping->getPostcode();
+			
+			$payload                                              = array();
+			$payload["customer_name"]                             = $billing_name;  
+			$payload["company_name"]                              = $billing_company;  
+			$payload["customer_phone"]                            = $billing_phone;  
+			$payload["customer_email"]                            = $billing_email;
+			$payload["address_details"][0]["address_label"]          = "Home";  
+			$payload["address_details"][0]["billing_customer_name"]  = $billing_name;
+			$payload["address_details"][0]["billing_street_no"]      = $billing_address;
+			$payload["address_details"][0]["billing_street_name"]    = $billing_address2;
+			$payload["address_details"][0]["billing_zip"]            = $billing_postcode;
+			$payload["address_details"][0]["billing_city"]           = $billing_city;
+			$payload["address_details"][0]["billing_state"]          = $billing_state;
+			$payload["address_details"][0]["shipping_customer_name"] = ($shipping_name?$shipping_name:$billing_name);
+			$payload["address_details"][0]["shipping_street_no"]     = ($shipping_address?$shipping_address:$billing_address);
+			$payload["address_details"][0]["shipping_street_name"]   = ($shipping_address2?$shipping_address2:($shipping_address?$billing_address2:""));
+			$payload["address_details"][0]["shipping_zip"]           = ($shipping_postcode?$shipping_postcode:$billing_postcode);
+			$payload["address_details"][0]["shipping_city"]          = ($shipping_city?$shipping_city:$billing_city);
+			$payload["address_details"][0]["shipping_state"]         = ($shipping_state?$shipping_state:$billing_state);
+			
+			$payload = json_encode( $payload );
+			$response = $this->post_vault_transaction( $payload );
+			
+			if( $response && $response->status == "OK" ) {
+				return $response->vault_customer_id;	
+			}
+			
+			return 0;
+		
+		}
+	
+		/**
+		 * Create Payment Profile API Action
+		 *
+		 * @since 1.0.0
+		 * @param int      $_vault_customer_id vault customer id.
+		 * @param int      $cc_number credit card number.
+		 * @param array    $exp_date credit card expiry date.
+		 * @param string   $cc_holdername Card holder name.
+		 *
+		 * @return object JSON response
+		 */	
+		public function create_payment_profile( $_vault_customer_id, $cc_number, $exp_month, $exp_year, $cc_holdername ) {
+	
+			$month = sprintf("%02d", $exp_month);
+			$year  = substr( $exp_year, 2 );
+	
+			$payload                    = array();
+			$payload["pan_num"]         = $cc_number;  
+			$payload["expiry"]          = "$month/$year";  
+			$payload["cardholder_name"] = $cc_holdername;  
+			
+			$payload  = json_encode( $payload );
+			$response = $this->post_vault_transaction( $payload, $_vault_customer_id );
+			
+			if( $response && $response->status == "OK" ) {
+				return $response->payment_id;	
+			}
+	
+			return 0;
+	
+		}
+		
 }

@@ -12,9 +12,35 @@ $code = $block->escapeHtml($block->getMethodCode());
 $ccType = $block->getInfoData('cc_type');
 $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
+
 ?>
 <fieldset class="admin__fieldset payment-method" id="payment_form_<?= /* @noEscape */ $code ?>">
-    <div class="field-type admin__field _required">
+
+    <?php if ($block->getShowCards()): ?>     
+        <div class="field-cards admin__field _required">
+            <input type="hidden" name="payment[cc_id]" id="<?= /* @noEscape */ $code ?>_cc_id" value="" /> 
+            <label for="<?= /* @noEscape */ $code ?>_payment_informations" class="admin__field-label">
+                <span><?= $block->escapeHtml(__('Payment Informations')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <select id="<?= /* @noEscape */ $code ?>_payment_informations"
+                        name="payment[cards]" data-validate='{
+                            required:true
+                        }'
+                        class="required-entry admin__control-select">
+                    <option value=""><?= $block->escapeHtml(__('--Please Select--')) ?></option>
+                <?php foreach ($block->getStoredCards() as $cards => $card): ?>
+                    <option value="<?= $block->escapeHtml($card->getCcType()) ?>">
+                        <?= $block->escapeHtml($card->getCcType()." ending in ".$card->getCcLast4()." (".$card->getCcName().")") ?>
+                    </option>
+                <?php endforeach; ?>
+                <option value="-1"><?= $block->escapeHtml(__('New Card')) ?></option>
+                </select>
+            </div>
+        </div>      
+    <?php endif; ?>
+
+    <div class="field-type admin__field _required hide-if-cards-available">
         <label class="admin__field-label" for="<?= /* @noEscape */ $code ?>_cc_type">
             <span><?= $block->escapeHtml(__('Credit Card Type')) ?></span>
         </label>
@@ -31,7 +57,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             </select>
         </div>
     </div>
-    <div class="field-number admin__field _required">
+    <div class="field-number admin__field _required hide-if-cards-available">
         <label class="admin__field-label" for="<?= /* @noEscape */ $code ?>_cc_number">
             <span><?= $block->escapeHtml(__('Credit Card Number')) ?></span>
         </label>
@@ -57,7 +83,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             ) ?>
         </div>
     </div>
-    <div class="field-date admin__field _required">
+    <div class="field-date admin__field _required hide-if-cards-available">
         <label class="admin__field-label" for="<?= /* @noEscape */ $code ?>_expiration">
             <span><?= $block->escapeHtml(__('Expiration Date')) ?></span>
         </label>
@@ -84,7 +110,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     </div>
 
     <?php if ($block->hasVerification()): ?>
-        <div class="field-number required admin__field _required">
+        <div class="field-number required admin__field _required hide-if-cards-available">
             <label class="admin__field-label" for="<?= /* @noEscape */ $code ?>_cc_cid">
                 <span><?= $block->escapeHtml(__('Card Verification Number')) ?></span>
             </label>
@@ -133,6 +159,17 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
             </div>
         </div>
         <?php endif; ?>
+
+        <?php if ($block->getShowSaveCard()): ?> 
+            <div class="admin__field hide-if-cards-available">
+                <div class="admin__field-control">
+                    <input type="checkbox" name="payment[save]" class="checkbox" id="<?php /* @noEscape */ echo $code; ?>_save" value="1" />
+                    <label class="label" for="<?php /* @noEscape */ echo $code; ?>_save">
+                        <span><?= $block->escapeHtml(__('Save for next time')) ?></span>
+                    </label>
+                </div>
+            </div>
+        <?php endif; ?>
     
 </fieldset>
 <?= /* @noEscape */ $secureRenderer->renderStyleAsTag(
@@ -167,4 +204,44 @@ jQuery(document).ready(function() {
         }
     });
 });
+</script>
+
+<script>
+    require(['jquery'], function($) {
+
+        var payment = $("#valorpay_gateway_payment_informations");
+        var lastIndex = payment.find("option").last().index();
+
+        if(payment.length)
+        {
+            $(".hide-if-cards-available").hide();
+        }
+
+        payment.change(function(e){
+            var selected = $(this).prop('selectedIndex');
+            var cc_id = selected -1;
+
+            $("#valorpay_gateway_cc_id").val("");
+
+            if(cc_id >= 0)
+            {
+                $("#valorpay_gateway_cc_id").val(cc_id);
+            }
+
+            $(".hide-if-cards-available").hide();
+            $(".hide-if-cards-available input:not(.checkbox)").val('').removeClass("required-entry validate-cc-number");
+            $('.hide-if-cards-available select').prop('selectedIndex',0).removeClass("required-entry");
+
+            if(selected == lastIndex)
+            {
+                $(".hide-if-cards-available").show();
+                $(".hide-if-cards-available input:not(.checkbox)").addClass("required-entry");
+                $("#valorpay_gateway_cc_number").addClass("validate-cc-number");
+                $('.hide-if-cards-available select').addClass("required-entry");
+            }
+
+            $("#valorpay_gateway_cc_type").val(payment.val());
+            
+        });
+    });
 </script>

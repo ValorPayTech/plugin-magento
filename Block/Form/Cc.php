@@ -23,6 +23,8 @@ class Cc extends \Magento\Payment\Block\Form
      */
     protected $_paymentConfig;
 
+    protected $cardCollection;
+
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Payment\Model\Config $paymentConfig
@@ -33,10 +35,12 @@ class Cc extends \Magento\Payment\Block\Form
         \Magento\Payment\Model\Config $paymentConfig,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Magento\Framework\Stdlib\StringUtils $string,
+        \ValorPay\CardPay\Block\Vault\Cc $cardCollection,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->_paymentConfig = $paymentConfig;
+        $this->cardCollection = $cardCollection;
         $version = $productMetadata->getVersion();
         $version_prefix = $string->substr($version,2,1);
         if( $version_prefix >= 4 ) {
@@ -209,5 +213,30 @@ class Cc extends \Magento\Payment\Block\Form
     {
         $this->_eventManager->dispatch('payment_form_block_to_html_before', ['block' => $this]);
         return parent::_toHtml();
+    }
+    
+    public function getStoredCards()
+    {
+        $cardCollection = $this->cardCollection->getCardCollection();
+        
+        return $cardCollection;
+    }
+
+    public function getShowCards()
+    {
+        $enabled = $this->getShowSaveCard();
+        $cards = $this->cardCollection->getCardCollection();
+
+        if($enabled && count($cards))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getShowSaveCard()
+    {
+        return $this->getMethod()->getConfigData('show_save_card');
     }
 }

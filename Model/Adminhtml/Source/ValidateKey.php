@@ -2,7 +2,7 @@
 namespace ValorPay\CardPay\Model\Adminhtml\Source;
 
 /**
- * Class to validate valorpay APP keys before saving setting values 
+ * Class to validate valorpay api keys before saving setting values 
  * if success then proceed and save data otherwise its throw error
  */
 class ValidateKey 
@@ -10,8 +10,10 @@ class ValidateKey
 
     protected $_curl;
 
+    protected $_valor_api_url = 'https://vt.valorpaytech.com/';
+
     public function __construct(
-    	\Magento\Framework\HTTP\Client\Curl $curl
+        \Magento\Framework\HTTP\Client\Curl $curl
     )
     {
         $this->_curl = $curl;
@@ -29,10 +31,10 @@ class ValidateKey
         $appid     = $groups["valorpay_gateway"]["fields"]["appid"]["value"];
         $authkey   = $groups["valorpay_gateway"]["fields"]["appkey"]["value"];
         $epi       = $groups["valorpay_gateway"]["fields"]["epi"]["value"];
-        $authtoken = $groups["valorpay_gateway"]["fields"]["authtoken"]["value"];
-        $sandbox   = $groups["valorpay_gateway"]["fields"]["sandbox"]["value"];
-        
-        if( $appid == "******" ) return $proceed();
+        $authtoken = 1;
+        $sandbox = $groups["valorpay_gateway"]["fields"]["sandbox"]["value"];
+
+        if( $appid == 1 ) return $proceed();
 
         $requestData = array(
             'app_id'     => $appid,
@@ -42,14 +44,15 @@ class ValidateKey
             'mtype'      => 'validate'
         );
         
-        $validateurl = "https://vt.valorpaytech.com";
-        if( $sandbox == 1 )	{
-            $validateurl = "https://vt-staging.valorpaytech.com:4430";
+        $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        
+        if($sandbox == 1){
+            
+            $this->_valor_api_url="https://vt-staging.valorpaytech.com:4430/";
+            $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
         }
 
-        $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);
-        $this->_curl->post($validateurl, http_build_query($requestData));
+        $this->_curl->post($this->_valor_api_url, http_build_query($requestData));
          
         //response will contain the output of curl request
         $response = $this->_curl->getBody();
@@ -59,7 +62,7 @@ class ValidateKey
         if( $response->error_no != "00" ) {
                 
             throw new \Magento\Framework\Exception\ValidatorException(
-                __("ValorPay APP KEYS Error: (".$response->error_no.") ".$response->mesg.", ".$response->desc)
+                __("ValorPay API KEYS Error: (".$response->error_no.") ".$response->mesg.", ".$response->desc)
             );
 
         }

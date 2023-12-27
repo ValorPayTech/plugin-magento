@@ -6,13 +6,11 @@
 
 /**
  * @var \Magento\Payment\Block\Transparent\Form $block
- * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 $code = $block->escapeHtml($block->getMethodCode());
 $ccType = $block->getInfoData('cc_type');
 $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
-
 ?>
 <fieldset class="fieldset payment items ccard <?= /* @noEscape */ $code ?>"
           id="payment_form_<?= /* @noEscape */ $code ?>">
@@ -21,7 +19,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
         <input type="hidden" name="payment[cc_id]" id="<?= /* @noEscape */ $code ?>_cc_id" value="" />    
         <div class="field card_list required">
             <label for="<?= /* @noEscape */ $code ?>_payment_informations" class="label">
-                <span><?= $block->escapeHtml(__('Payment Informations')) ?></span>
+                <span><?= $block->escapeHtmlAttr(__('Payment Informations')) ?></span>
             </label>
             <div class="control">
                 <select id="<?= /* @noEscape */ $code ?>_payment_informations"
@@ -31,16 +29,16 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                         class="select">
                     <option value=""><?= $block->escapeHtml(__('--Please Select--')) ?></option>
                 <?php foreach ($block->getStoredCards() as $cards => $card): ?>
-                    <option value="<?= $block->escapeHtml($card->getCcType()) ?>">
-                        <?= $block->escapeHtml($card->getCcType()." ending in ".$card->getCcLast4()." (".$card->getCcName().")") ?>
+                    <option value="<?= $block->escapeHtmlAttr($card->getCcType()) ?>">
+                        <?= $block->escapeHtmlAttr($card->getCcType()." ending in ".$card->getCcLast4()." (".$card->getCcName().")") ?>
                     </option>
                 <?php endforeach; ?>
-                <option value="-1"><?= $block->escapeHtml(__('New Card')) ?></option>
+                <option value="-1"><?= $block->escapeHtmlAttr(__('New Card')) ?></option>
                 </select>
             </div>
         </div>      
     <?php endif; ?>
-
+          
     <div class="field type required hide-if-cards-available">
         <label for="<?= /* @noEscape */ $code ?>_cc_type" class="label">
             <span><?= $block->escapeHtml(__('Credit Card Type')) ?></span>
@@ -57,7 +55,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                     class="select">
                 <option value=""><?= $block->escapeHtml(__('--Please Select--')) ?></option>
             <?php foreach ($block->getCcAvailableTypes() as $typeCode => $typeName): ?>
-                <option value="<?= $block->escapeHtml($typeCode) ?>"
+                <option value="<?= $block->escapeHtmlAttr($typeCode) ?>"
                     <?php if ($typeCode == $ccType): ?> selected="selected"<?php endif; ?>>
                     <?= $block->escapeHtml($typeName) ?>
                 </option>
@@ -67,31 +65,16 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     </div>
     <div class="field number required hide-if-cards-available">
         <label for="<?= /* @noEscape */ $code ?>_cc_number" class="label">
-            <span><?= $block->escapeHtml(__('Credit Card Number')) ?></span>
+            <span><?= $block->escapeHtmlAttr(__('Credit Card Number')) ?></span>
         </label>
         <div class="control">
             <input type="number" id="<?= /* @noEscape */ $code ?>_cc_number" name="payment[cc_number]"
-                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>" onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;" class="input-text" value=""
+                   title="<?= $block->escapeHtml(__('Credit Card Number')) ?>"  onKeyDown="if(this.value.length==19 && event.keyCode!=8) return false;" class="input-text" value=""
                    data-validate='{
                        "required-number":true,
                        "validate-cc-number":"#<?= /* @noEscape */ $code ?>_cc_type",
                        "validate-cc-type":"#<?= /* @noEscape */ $code ?>_cc_type"
                    }'/>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'oncopy',
-                "event.preventDefault();",
-                '#' . $code . '_cc_number'
-            ) ?>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'oncut',
-                "event.preventDefault();",
-                '#' . $code . '_cc_number'
-            ) ?>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'onpaste',
-                "event.preventDefault();",
-                '#' . $code . '_cc_number'
-            ) ?>
         </div>
     </div>
     <div class="field date required hide-if-cards-available" id="<?= /* @noEscape */ $code ?>_cc_type_exp_div">
@@ -108,7 +91,7 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
                                 data-validate='{required:true, "validate-cc-exp":"#<?= /* @noEscape */ $code
                                 ?>_expiration_yr"}'>
                             <?php foreach ($block->getCcMonths() as $k => $v): ?>
-                                <option value="<?= /* @noEscape */ $k ? $block->escapeHtml($k) : '' ?>"
+                                <option value="<?= /* @noEscape */ $k ? $block->escapeHtmlAttr($k) : '' ?>"
                                     <?php if ($k == $ccExpMonth): ?> selected="selected"<?php endif; ?>>
                                     <?= $block->escapeHtml($v) ?>
                                 </option>
@@ -135,27 +118,12 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     <?php if ($block->hasVerification()): ?>
     <div class="field cvv required hide-if-cards-available" id="<?= /* @noEscape */ $code ?>_cc_type_cvv_div">
         <label for="<?= /* @noEscape */ $code ?>_cc_cid" class="label">
-            <span><?= $block->escapeHtml(__('Card Verification Number')) ?></span>
+            <span><?= $block->escapeHtmlAttr(__('Card Verification Number')) ?></span>
         </label>
         <div class="control">
             <input type="number" onKeyDown="if(this.value.length==4 && event.keyCode!=8) return false;" title="<?= $block->escapeHtml(__('Card Verification Number')) ?>"
                    class="input-text cvv" id="<?= /* @noEscape */ $code ?>_cc_cid" name="payment[cc_cid]" value=""
                    data-validate='{"required-number":true, "validate-cc-cvn":"#<?= /* @noEscape */ $code ?>_cc_type"}'/>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'oncopy',
-                "event.preventDefault();",
-                '#' . $code . '_cc_cid'
-            ) ?>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'oncut',
-                "event.preventDefault();",
-                '#' . $code . '_cc_cid'
-            ) ?>
-            <?= /* @noEscape */ $secureRenderer->renderEventListenerAsTag(
-                'onpaste',
-                "event.preventDefault();",
-                '#' . $code . '_cc_cid'
-            ) ?>
             <?php $content = '<img src=\"' . $block->getViewFileUrl('Magento_Checkout::cvv.png') . '\" alt=\"' .
                 $block->escapeHtml(__('Card Verification Number Visual Reference')) .
                 '\" title=\"' . $block->escapeHtml(__('Card Verification Number Visual Reference')) . '\" />'; ?>
@@ -169,12 +137,12 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     </div>
     <?php endif; ?>
 
-    <?php if ($block->getShowSaveCard()): ?> 
+    <?php if ($block->getShowSaveCard()): ?>
         <div class="field hide-if-cards-available">
             <div class="control">
                 <input type="checkbox" name="payment[save]" class="checkbox" id="<?php /* @noEscape */ echo $code; ?>_save" value="1" />
                 <label class="label" for="<?php /* @noEscape */ echo $code; ?>_save">
-                    <span><?= $block->escapeHtml(__('Save for next time')) ?></span>
+                    <span><?= $block->escapeHtmlAttr(__('Save for next time')) ?></span>
                 </label>
             </div>
         </div>
@@ -190,11 +158,6 @@ $ccExpYear = $block->getInfoData('cc_exp_year');
     
     <?= $block->getChildHtml() ?>
 </fieldset>
-<?= /* @noEscape */ $secureRenderer->renderStyleAsTag(
-    "display:none",
-    'fieldset#payment_form_' . /* @noEscape */ $code
-) ?>
-
 <script type="text/javascript">
     require(['jquery', 'vaultscript'], function($, selectCard) {
 
