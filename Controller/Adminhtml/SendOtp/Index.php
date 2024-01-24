@@ -62,7 +62,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
 	
 	$creditmemo = $this->creditmemoLoader->load();
 	$shipping_amount = $creditmemo->getShippingAmount();
-    $amount  = $creditmemo->getBaseGrandTotal();
+    $amount  = number_format($creditmemo->getBaseGrandTotal(),2);
         
     $requestData = array(
 	   'appid' => $this->getConfigData2('appid'),
