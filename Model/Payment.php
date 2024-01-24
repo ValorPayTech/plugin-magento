@@ -518,6 +518,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 	$auth_code = $payment->getData('valor_auth_code');
 	
 	$creditmemo_array = $this->_request->getParam('creditmemo');
+	$amount  = number_format($amount,2);
 
 	$otp  = $creditmemo_array["refund_otp_no"];
 	$uuid = $creditmemo_array["uuid"];
