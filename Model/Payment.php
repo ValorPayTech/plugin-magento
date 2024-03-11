@@ -20,14 +20,16 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $_valor_api_url        = 'https://securelink.valorpaytech.com/';
     
 	/**
-	 * Sandbox vault add customer profile URL
+	 * Vault add customer profile URL
 	 */
 	protected $_WC_VALORPAY_VAULT_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addcustomer';
+	protected $_WC_VALORPAY_VAULT_PRODUCTION_URL = 'https://online.valorpaytech.com/api/valor-vault/addcustomer';
 
 	/**
-	 * Sandbox vault add payment profile URL
+	 * Vault add payment profile URL
 	 */
 	protected $_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
+	protected $_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_PRODUCTION_URL = 'https://online.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
 
 	protected $_remoteAddress;	
     protected $_orderRepository;
@@ -610,13 +612,13 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		 * @since 1.0.0
 		 */
 		protected function get_valorpay_vault_url($_vault_customer_id) {
-			$api_url = $this->_WC_VALORPAY_VAULT_SANDBOX_URL;
+			$api_url = $this->_WC_VALORPAY_VAULT_PRODUCTION_URL;
 			$sandbox = $this->getConfigData('sandbox');
 			if ( !$_vault_customer_id && 1 === $sandbox ) {
 				$api_url = $this->_WC_VALORPAY_VAULT_SANDBOX_URL;
 			}
 			if( $_vault_customer_id ) {
-				$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+				$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id);
 				if ( 1 === $sandbox ) {
 					$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
 				}

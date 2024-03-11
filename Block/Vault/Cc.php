@@ -25,9 +25,10 @@ class Cc extends Template
     protected $_adminCustomer;
 
     /**
-     * Sandbox vault get payment profile URL
+     *vault get payment profile URL
      */
     protected $_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
+    protected $_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_PRODUCTION_URL = 'https://online.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
 
     public function __construct(
         CcFactory  $ccFactory,
@@ -72,7 +73,7 @@ class Cc extends Template
         $appkey = $this->_scopeConfig->getValue('payment/valorpay_gateway/appkey',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $sandbox = $this->_scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         
-        $this->_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+        $this->_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id);
         if ( 1 === $sandbox ) {
             $this->_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
         }
