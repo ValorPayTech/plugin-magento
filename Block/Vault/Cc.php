@@ -74,7 +74,7 @@ class Cc extends Template
         $sandbox = $this->_scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         
         $this->_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id);
-        if ( 1 === $sandbox ) {
+        if ( $sandbox == 1 ) {
             $this->_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
         }
         

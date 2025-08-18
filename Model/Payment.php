@@ -591,7 +591,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
      * @param \Magento\Quote\Api\Data\CartInterface|null $quote
      * @return bool
      */
-    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    public function isAvailable(?\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         if ( !$this->getConfigData('appid') || !$this->getConfigData('appkey') || !$this->getConfigData('epi') ) {
             return false;
@@ -614,12 +614,12 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 		protected function get_valorpay_vault_url($_vault_customer_id) {
 			$api_url = $this->_WC_VALORPAY_VAULT_PRODUCTION_URL;
 			$sandbox = $this->getConfigData('sandbox');
-			if ( !$_vault_customer_id && 1 === $sandbox ) {
+			if ( !$_vault_customer_id && $sandbox == 1 ) {
 				$api_url = $this->_WC_VALORPAY_VAULT_SANDBOX_URL;
 			}
 			if( $_vault_customer_id ) {
 				$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id);
-				if ( 1 === $sandbox ) {
+				if ( $sandbox == 1 ) {
 					$api_url = sprintf($this->_WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
 				}
 			}
