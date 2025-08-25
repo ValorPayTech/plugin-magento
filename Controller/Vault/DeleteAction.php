@@ -49,7 +49,7 @@ class DeleteAction extends \Magento\Framework\App\Action\Action
         $sandbox = $scopeConfig->getValue('payment/valorpay_gateway/sandbox',\Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         
         $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_PRODUCTION_URL,$_vault_customer_id,$payment_id);
-        if ( 1 === $sandbox ) {
+        if ( $sandbox == 1 ) {
             $_valor_api_url = sprintf($this->_WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
         }
         
