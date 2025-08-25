@@ -137,16 +137,16 @@ $commentText = $block->getCreditmemo()->getCommentText();
                 <div class="actions">
                     <?= $block->getChildHtml('submit_offline') ?>
                     <?= $block->getChildHtml('submit_button') ?>
-                    <input class="admin__control-text submit-otp" placeholder="<?php echo __("Enter OTP"); ?>" style="display:none;" name="creditmemo[refund_otp_no]" id="refund_otp_no" value="" type="text" />
+                    <input class="admin__control-text submit-otp" placeholder="<?= $block->escapeHtmlAttr(__('Enter OTP')) ?>" style="display:none;" name="creditmemo[refund_otp_no]" id="refund_otp_no" value="" type="text" />
                     <input type="hidden" name="creditmemo[uuid]" id="uuid" value="">
                     <button title="Submit" type="button" style="display:none;" onClick="submitOTPCreditMemo()" class="action-default scalable save submit-otp primary">
-		        <span><?php echo __("Submit"); ?></span>
+		        <span><?= $block->escapeHtml(__('Submit')) ?></span>
 		    </button>
 		    <button title="Submit" type="button" style="display:none;" onClick="cancelRefund()" class="action-default scalable save submit-otp default">
-		        <span><?php echo __("Cancel"); ?></span>
+		        <span><?= $block->escapeHtml(__('Cancel')) ?></span>
 		    </button>
 		    <a name="otpsend"></a>
-		    <br class="submit-otp" style="display:none;" /><a href="#otpsend" class="submit-otp" style="display:none;float:right;margin-right:25px;margin-top:10px;" onClick="resendOTPCreditMemo()"><?php echo __("Resend OTP"); ?></a>
+		    <br class="submit-otp" style="display:none;" /><a href="#otpsend" class="submit-otp" style="display:none;float:right;margin-right:25px;margin-top:10px;" onClick="resendOTPCreditMemo()"><?= $block->escapeHtml(__('Resend OTP')) ?></a>
                     <?= $block->getChildHtml('submit_after') ?>
                 </div>
                 <p id="optresponse" class="submit-otp" style="float:right;margin-top:30px;"></p>
@@ -215,10 +215,10 @@ cancelRefund = function() {
 
 resendOTPCreditMemo = function() {
     
-    document.getElementById("optresponse").innerHTML = '<?php echo __("Resending otp ..."); ?>';
+    document.getElementById("optresponse").innerHTML = '<?= $block->escapeJs(__('Resending otp ...')) ?>';
     
     jQuery.ajax({
-            url: "<?php echo $otp_url; ?>",
+            url: "<?= $block->escapeJsQuote($block->escapeUrl($otp_url)) ?>",
 	    type: "POST",
 	    data: jQuery("#edit_form").serialize(),
 	    success: function(response) {
@@ -251,7 +251,7 @@ resendOTPCreditMemo = function() {
 submitCreditMemo = function() {
     
     jQuery.ajax({
-            url: "<?php echo $otp_url; ?>",
+            url: "<?= $block->escapeJsQuote($block->escapeUrl($otp_url)) ?>",
 	    type: "POST",
 	    data: jQuery("#edit_form").serialize(),
 	    success: function(response) {
