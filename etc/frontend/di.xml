@@ -20,6 +20,7 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="ccform" xsi:type="object">ValorPay\CardPay\Model\Ui\ConfigProvider</item>
                 <item name="cc_card_config_provider" xsi:type="object">Magento\Payment\Model\CcConfigProvider</item>
+                <item name="ach_config_provider" xsi:type="object">ValorPay\CardPay\Model\ConfigProvider</item>
             </argument>
         </arguments>
     </type>
@@ -31,5 +32,7 @@
     <type name="Magento\Multishipping\Controller\Checkout\Overview">
         <plugin name="valor_multishipping_terms_checked" type="ValorPay\CardPay\Plugin\Multishipping\Overview" sortOrder="11" />
     </type>
-    
+     <type name="Magento\Payment\Block\Info">
+        <plugin name="custom_info_plugin" type="ValorPay\CardPay\Plugin\InfoPlugin" />
+    </type>
 </config>

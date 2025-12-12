@@ -13,13 +13,15 @@ class AddFeeToOrderObserver implements ObserverInterface
     protected $_state;
     protected $_request;
     protected $cardCollection;
-    
+    protected $scopeConfig;
+
     public function __construct(
     
     	\Magento\Webapi\Controller\Rest\InputParamsResolver $inputParamsResolver,
     	\Magento\Framework\App\State $state,
     	\Magento\Framework\App\Request\Http $request,
-    	\ValorPay\CardPay\Block\Vault\Cc $cardCollection
+		\ValorPay\CardPay\Block\Vault\Cc $cardCollection,
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
 
     ) 
     {
@@ -28,6 +30,7 @@ class AddFeeToOrderObserver implements ObserverInterface
         $this->_state = $state;
         $this->_request = $request;
         $this->cardCollection = $cardCollection;
+		$this->scopeConfig = $scopeConfig;
     }
 	
     /**
@@ -56,7 +59,19 @@ class AddFeeToOrderObserver implements ObserverInterface
 			foreach ($inputParams as $inputParam) {
 				if ($inputParam instanceof \Magento\Quote\Model\Quote\Payment) {
 					$paymentData = $inputParam->getData('additional_data');
-					if( isset($paymentData) && count($paymentData) > 0 ) {
+					$achenabled = $this->scopeConfig->getValue('payment/valorpay_gateway/enable_ach', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+
+					if( isset($paymentData) && count($paymentData) > 0 && $achenabled && !empty($paymentData['account_number'])) {
+						$paymentOrder->setAdditionalInformation('routing_number', $paymentData['routing_number']);
+						$paymentOrder->setAdditionalInformation('account_number', $paymentData['account_number']);
+						$paymentOrder->setAdditionalInformation('name_on_account', $paymentData['name_on_account']);
+						$paymentOrder->setAdditionalInformation('account_type', $paymentData['account_type']);
+						$paymentOrder->setAdditionalInformation('entry_class', $paymentData['entry_class']);
+						$paymentOrder->setAdditionalInformation('phone', $paymentData['phone']);
+						$paymentOrder->setAdditionalInformation('email', $paymentData['email']);
+
+					}
+					elseif( isset($paymentData) && count($paymentData) > 0 ) {
 						$paymentOrder->setAdditionalInformation('avs_zipcode', $paymentData['avs_zipcode']);
 						$paymentOrder->setAdditionalInformation('avs_address', $paymentData['avs_address']);
 						$paymentOrder->setAdditionalInformation('terms_checked', $paymentData['terms_checked']);

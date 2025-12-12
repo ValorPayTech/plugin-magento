@@ -1,0 +1,35 @@
+.ach_field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.ach_field .ach_label_req {
+    width: 180px;
+    font-weight: 600;
+}
+.ach_field .ach_label {
+    width: 180px;
+    font-weight: 600;
+}
+.ach_payment_form_valorpay_gateway {
+    border: 0px;
+}
+.ach_field .ach_control {
+    flex: 1;
+}
+.input-text,
+select {
+    width: 100%;
+    padding: 6px 10px;
+    box-sizing: border-box;
+}
+.ach_label_req:after{
+    content: '*';
+    color: #e02b27;
+    font-size: 1.2rem;
+    margin: 0 0 0 5px;
+}
+
+div#card_logo img {
+    height: 25px;
+}

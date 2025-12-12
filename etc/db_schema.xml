@@ -20,6 +20,7 @@
     <column xsi:type="varchar" name="valor_token" nullable="true" length="100" comment="ValorPay Token"/>
     <column xsi:type="varchar" name="valor_rrn" nullable="true" length="100" comment="ValorPay RRN"/>
     <column xsi:type="varchar" name="valor_auth_code" nullable="true" length="100" comment="ValorPay Auth Code"/>
+    <column xsi:type="varchar" name="valor_ach_verification_status" nullable="true" length="100" comment="ValorPay Verification Status"/>
   </table>
   <table name="valorpay_vault" resource="default" comment="Valorpay Vault">
     <column xsi:type="int" name="cc_id" identity="true" unsigned="true" nullable="false" comment="Card ID"/>

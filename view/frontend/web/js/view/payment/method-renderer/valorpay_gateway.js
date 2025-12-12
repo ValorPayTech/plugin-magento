@@ -4,13 +4,14 @@
  */
 /*browser:true*/
 /*global define*/
-define(
-    [
-        'Magento_Payment/js/view/payment/cc-form',
-		'jquery',
-        'Magento_Payment/js/model/credit-card-validation/validator'
-    ],
-    function (Component) {
+define([
+    'jquery',
+    'jquery/validate',
+    'mage/validation',
+    'Magento_Payment/js/view/payment/cc-form',
+    'Magento_Payment/js/model/credit-card-validation/validator',
+    'Magento_Checkout/js/action/get-totals'
+], function ($, jqueryValidate, validation, Component, getTotalsAction) {
         'use strict';
         var config=window.checkoutConfig.payment.ccform;
         return Component.extend({
@@ -54,26 +55,75 @@ define(
         			cc_type = this.getStoreCard()[selected]['cc_type'];
         			cc_last_4 = this.getStoreCard()[selected]['cc_last_4'];
         		}
-
-        		return {
-                    'method': this.getCode(),
-                    'additional_data': {
+				if(window.checkoutConfig.payment.valorpay && window.checkoutConfig.payment.valorpay.enableAch){
+					var selectedMethod = jQuery('input[name="payment_method"]:checked').val();
+					var data = {
+					method: this.getCode(),
+					additional_data: {
+						payment_method_type: selectedMethod || 'card'
+					}
+					};
+					if (selectedMethod === 'card') {
+						data.method = this.getCode();
+						data.additional_data = {
+						'payment_method_type': 'card',
 						'cc_cid': this.creditCardVerificationNumber(),
-						'cc_ss_start_month': this.creditCardSsStartMonth(),
-						'cc_ss_start_year': this.creditCardSsStartYear(),
-						'cc_ss_issue': this.creditCardSsIssue(),
-						'cc_type': cc_type,
-						'cc_exp_year': this.creditCardExpYear(),
-						'cc_exp_month': this.creditCardExpMonth(),
-						'cc_number': this.creditCardNumber(),
-                        'avs_zipcode': avs_zipcode,
-                        'avs_address': avs_address,
-                        'save': card_saved,
-                        'terms_checked' : terms_checked,
-                        'vault_token' : vault_token,
-                        'cc_last_4' : cc_last_4
-                    }
-                };
+							'cc_ss_start_month': this.creditCardSsStartMonth(),
+							'cc_ss_start_year': this.creditCardSsStartYear(),
+							'cc_ss_issue': this.creditCardSsIssue(),
+							'cc_type': cc_type,
+							'cc_exp_year': this.creditCardExpYear(),
+							'cc_exp_month': this.creditCardExpMonth(),
+							'cc_number': this.creditCardNumber(),
+							'avs_zipcode': avs_zipcode,
+							'avs_address': avs_address,
+							'save': card_saved,
+							'terms_checked' : terms_checked,
+							'vault_token' : vault_token,
+							'cc_last_4' : cc_last_4
+
+						};
+					}
+
+					// ACH
+					if (selectedMethod === 'ach') {
+						data.method = this.getCode();
+						data.additional_data = {
+							'payment_method_type': 'ach',
+							routing_number: jQuery('#routing').val() || '',
+							account_number: jQuery('#account').val() || '',
+							name_on_account: jQuery('#name_on_account').val() || '',
+							account_type: jQuery('#account_type').val() || '',
+							entry_class: jQuery('#entry_class').val() || '',
+							phone: jQuery('#phone_number').val() || '',
+							email: jQuery('#email').val() || ''
+						};
+					}
+
+					return data;
+				}
+				else{
+					return {
+						'method': this.getCode(),
+						'additional_data': {
+							'payment_method_type': 'card',
+							'cc_cid': this.creditCardVerificationNumber(),
+							'cc_ss_start_month': this.creditCardSsStartMonth(),
+							'cc_ss_start_year': this.creditCardSsStartYear(),
+							'cc_ss_issue': this.creditCardSsIssue(),
+							'cc_type': cc_type,
+							'cc_exp_year': this.creditCardExpYear(),
+							'cc_exp_month': this.creditCardExpMonth(),
+							'cc_number': this.creditCardNumber(),
+							'avs_zipcode': avs_zipcode,
+							'avs_address': avs_address,
+							'save': card_saved,
+							'terms_checked' : terms_checked,
+							'vault_token' : vault_token,
+							'cc_last_4' : cc_last_4,
+						}
+					};
+				}
                 
             },    
             
@@ -83,7 +133,26 @@ define(
             },
 
             isActive: function() {
+                var self = this;
+                if (!window.checkoutConfig.payment.valorpay || !window.checkoutConfig.payment.valorpay.enableAch) {
+		            this.updatePaymentMethodForSurcharge('card');
+		        }
                 return true;
+            },
+
+            updatePaymentMethodForSurcharge: function(method) {
+                $.ajax({
+                    url: '/valor/checkout/updatePaymentMethod',
+                    type: 'POST',
+                    data: {
+                        payment_method_type: method || 'card'
+                    },
+                    success: function(response) {
+                        console.log('Payment method updated:', method);
+                        var deferred = $.Deferred();
+                        getTotalsAction([], deferred);
+                    }
+                });
             },
 
             hasAVSZip: function () {
@@ -149,6 +218,10 @@ define(
 		        }
 			  	jQuery(".hide-if-cards-available input").val('').keyup();
 		        jQuery('.hide-if-cards-available select').prop('selectedIndex',0);
+
+		        if (!window.checkoutConfig.payment.valorpay || !window.checkoutConfig.payment.valorpay.enableAch) {
+		            this.updatePaymentMethodForSurcharge('card');
+		        }
 		    },
 
 		    getCardList: function() {
@@ -233,6 +306,85 @@ define(
             validate: function() {
                 var $form = jQuery('#' + this.getCode() + '-form');
                 return $form.validation() && $form.validation('isValid');
+            },
+
+            initObservable: function () {
+                this._super();
+
+                jQuery.validator.addMethod('validate-card-type', function(value, element, params) {
+                    return true;
+                }, jQuery.mage.__('Please select a valid card type.'));
+
+                jQuery.validator.addMethod('validate-card-number', function(value, element, params) {
+                    return true;
+                }, jQuery.mage.__('Please enter a valid card number.'));
+
+                jQuery.validator.addMethod('validate-card-cvv', function(value, element, params) {
+                    return true;
+                }, jQuery.mage.__('Please enter a valid CVV.'));
+
+                jQuery.validator.addMethod('validate-phone-or-email', function(value, element, params) {
+                    var otherField = jQuery(params);
+                    return value.trim() !== '' || otherField.val().trim() !== '';
+                }, jQuery.mage.__('Please enter either phone number or email.'));
+
+                return this;
+            },
+
+            initialize: function() {
+                this._super();
+                var self = this;
+
+                jQuery(document).ready(function() {
+                    jQuery(document).on('change', 'input[name="payment_method"]', function() {
+                        setTimeout(function() {
+                            var button = jQuery('.action.primary.checkout');
+                            if (button.length) {
+                                button.prop('disabled', self.isPlaceOrderButtonDisabled());
+                            }
+                        }, 100);
+                    });
+                    jQuery(document).on('change', '#valorpay_gateway_cc_id', function() {
+                        setTimeout(function() {
+                            var button = jQuery('.action.primary.checkout');
+                            if (button.length) {
+                                button.prop('disabled', self.isPlaceOrderButtonDisabled());
+                            }
+                        }, 100);
+                    });
+                });
+
+                return this;
+            },
+
+            isPlaceOrderButtonDisabled: function() {
+                if (window.checkoutConfig.payment.valorpay && window.checkoutConfig.payment.valorpay.enableAch) {
+
+                    var cardSelected = jQuery('input[name="payment_method"][value="card"]').is(':checked');
+                    var achSelected = jQuery('input[name="payment_method"][value="ach"]').is(':checked');
+
+                    if (!cardSelected && !achSelected) {
+                        return true;
+                    }
+
+                    if (cardSelected) {
+                        var dropdown = jQuery('#valorpay_gateway_cc_id');
+                        if (dropdown.length && dropdown.is(':visible')) {
+                            var selected = dropdown.val();
+                            return !selected || selected === '' || selected === undefined;
+                        }
+                        return false;
+                    }
+
+                    return false;
+                } else {
+                    var dropdown = jQuery('#valorpay_gateway_cc_id');
+                    if (dropdown.length && dropdown.is(':visible')) {
+                        var selected = dropdown.val();
+                        return !selected || selected === '' || selected === undefined;
+                    }
+                    return false;
+                }
             }
         });
     }

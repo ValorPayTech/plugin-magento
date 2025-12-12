@@ -198,66 +198,130 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         $shipping = $order->getShippingAddress();
 		
 	try {
-	    
-	    $surchargeIndicator = $this->getConfigData('surchargeIndicator');
-	    
-	    if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
-            
-            $surchargeAmount = $this->get_surcharge_fee($order);
-            
-            $amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
-            
-            $payment_array = $this->_request->getParam('payment');
-	    
-	    if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
-	    	$avs_zipcode = $payment_array["avs_zipcode"];
-	    else
-	    	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
-	    	
-	    if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 ) 
-	    	$avs_address   = $payment_array["avs_address"];
-	    else
-	    	$avs_address = $payment->getAdditionalInformation("avs_address");
-            
-	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
-            $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+		$achenabled = $this->getConfigData('enable_ach');
+		if($achenabled && $payment->getAdditionalInformation('account_number')){
+			$accountType = $payment->getAdditionalInformation('account_type');
+			$accountType = ($accountType == "savings") ? "S" : (($accountType == "checking") ? "C" : $accountType);
 
-        if($payment->getAdditionalInformation('vault_token')){
-        	$expirydate = '';
-        	$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
-        }else{
-        	$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
-        }    
+			$requestData = array(
+				'appid' => $this->getConfigData('appid'),
+				'appkey' => $this->getConfigData('appkey'),
+				'epi' => $this->getConfigData('epi'),
+				'txn_type' => 'ACHDebit',
+				'account_number' => $payment->getAdditionalInformation('account_number'),
+				'routing_number' => $payment->getAdditionalInformation('routing_number'),
+				'payee_name' => $payment->getAdditionalInformation('name_on_account'),
+				'account_type'=> $accountType,
+				'entry_class'=> $payment->getAdditionalInformation('entry_class'),
+				'amount'=> $amount,
+				'phone' => $payment->getAdditionalInformation('phone'),
+				'email' => $payment->getAdditionalInformation('email'),
+				'state_tax'=>0,
+				'city_tax'=>0,
+				'reduced_tax'=>0
+
+			);
+
+			$response = $this->post_transaction($requestData);
+			$response_string = $response->msg;
+			$payment
+				->setTransactionId($response->document_id)
+				->setIsTransactionClosed(0);
+
+			$payment->setData('valor_rrn', $response->reference_number);
+			if (!empty($response->desc)) {
+				$payment->setData('valor_auth_code', $response->desc);
+				$response_string = sprintf(
+					/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Document Id, 5: Line Break, 6: Approval Code 7: Line Break 8: Reference Number. */
+					__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Document ID:</strong>  %4$s.%5$s <strong>Approval Code:</strong> %6$s.%7$s <strong>Reference Number:</strong> %8$s'),
+					"completed",
+					$order->getBaseCurrency()->formatTxt($amount),
+					"<br />",
+					$response->document_id,
+					"<br />",
+					$response->msg,
+					"<br />",
+					$response->reference_number
+					);
+			} else {
+				$payment->setData('valor_auth_code', $response->mesg);
+				$payment->setData('valor_ach_verification_status', $response->verification_status ?? '');
+				$response_string = sprintf(
+					/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Document Id, 5: Line Break, 6: Approval Code 7: Line Break 8: Reference Number. */
+					__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Approval Code:</strong> %4$s.%5$s <strong>Reference Number:</strong> %6$s'),
+					"is waiting for verification",
+					$order->getBaseCurrency()->formatTxt($amount),
+					"<br />",
+					$response->msg,
+					"<br />",
+					$response->reference_number
+					);
+			}
             
-            $requestData = array(
-		'appid' => $this->getConfigData('appid'),
-		'appkey' => $this->getConfigData('appkey'),
-		'epi' => $this->getConfigData('epi'),
-		'txn_type' => 'auth',
-		'ecomm_channel' => 'magento',
-		'amount' => $amount,
-		'sandbox' => $this->getConfigData('sandbox'),
-		'phone' => $billing->getTelephone(),
-		'email' => $order->getCustomerEmail(),
-		'uid' => $order->getIncrementId(),
-		'tax_amount' => $order->getBaseTaxAmount(),
-		'ip' => $this->_remoteAddress->getRemoteAddress(),
-		'surchargeIndicator' => $surchargeIndicator,
-		'surchargeAmount' => $surchargeAmount,
-		'address1' => $valor_avs_street,
-		'address2' => $billing->getStreetLine(2),
-		'city' => $billing->getCity(),
-		'state' => $billing->getRegion(),
-		'zip' => $valor_avs_zip,
-		'billing_country' => $billing->getCountryId(),
-		'shipping_country' => $shipping->getCountryId(),
-		'cardnumber' => $payment->getCcNumber(),
-		'status' => 'Y',
-		'cvv' => $payment->getCcCid(),
-		'cardholdername' => $billing->getName(),
-		'expirydate' => $expirydate,
-		'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
-		'token' => $payment->getAdditionalInformation('vault_token')
+            $order->addCommentToStatusHistory($response_string);
+			$this->_orderRepository->save($order);
+
+		}
+	    else{
+			$surchargeIndicator = $this->getConfigData('surchargeIndicator');
+
+			if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
+
+				$surchargeAmount = $this->get_surcharge_fee($order);
+
+				$amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
+
+				$payment_array = $this->_request->getParam('payment');
+
+			if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
+				$avs_zipcode = $payment_array["avs_zipcode"];
+			else
+				$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
+
+			if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 )
+				$avs_address   = $payment_array["avs_address"];
+			else
+				$avs_address = $payment->getAdditionalInformation("avs_address");
+
+			$valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
+				$valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+
+			if($payment->getAdditionalInformation('vault_token')){
+				$expirydate = '';
+				$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
+			}else{
+				$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
+			}
+
+				$requestData = array(
+			'appid' => $this->getConfigData('appid'),
+			'appkey' => $this->getConfigData('appkey'),
+			'epi' => $this->getConfigData('epi'),
+			'txn_type' => 'auth',
+			'ecomm_channel' => 'magento',
+			'amount' => $amount,
+			'sandbox' => $this->getConfigData('sandbox'),
+			'phone' => $billing->getTelephone(),
+			'email' => $order->getCustomerEmail(),
+			'uid' => $order->getIncrementId(),
+			'tax_amount' => $order->getBaseTaxAmount(),
+			'ip' => $this->_remoteAddress->getRemoteAddress(),
+			'surchargeIndicator' => $surchargeIndicator,
+			'surchargeAmount' => $surchargeAmount,
+			'address1' => $valor_avs_street,
+			'address2' => $billing->getStreetLine(2),
+			'city' => $billing->getCity(),
+			'state' => $billing->getRegion(),
+			'zip' => $valor_avs_zip,
+			'billing_country' => $billing->getCountryId(),
+			'shipping_country' => $shipping->getCountryId(),
+			'cardnumber' => $payment->getCcNumber(),
+			'status' => 'Y',
+			'cvv' => $payment->getCcCid(),
+			'cardholdername' => $billing->getName(),
+			'expirydate' => $expirydate,
+			'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
+			'token' => $payment->getAdditionalInformation('vault_token')
             );
             
             $response = $this->post_transaction($requestData);
@@ -287,7 +351,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             $order->addCommentToStatusHistory($response_string);
 	    	$this->_orderRepository->save($order);
 
-        } catch (\Exception $e) {
+        }
+	} catch (\Exception $e) {
             $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment capturing error. '.$e->getMessage()));
             throw new \Magento\Framework\Validator\Exception(__('Payment capturing error. '.$e->getMessage()));
@@ -350,67 +415,130 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         $shipping = $order->getShippingAddress();
 		
 	try {
-	    
-	    $surchargeIndicator  = $this->getConfigData('surchargeIndicator');
-	    
-	    if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
-	                
-            $surchargeAmount = $this->get_surcharge_fee($order);
-            
-            $amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
-            
-            $payment_array = $this->_request->getParam('payment');
-	    
-	    if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
-	    	$avs_zipcode = $payment_array["avs_zipcode"];
-	    else
-	    	$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
-	    	
-	    if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 ) 
-	    	$avs_address   = $payment_array["avs_address"];
-	    else
-	    	$avs_address = $payment->getAdditionalInformation("avs_address");
-	    
-	    $valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
-            $valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+	    $achenabled = $this->getConfigData('enable_ach');
+		if($achenabled && $payment->getAdditionalInformation('account_number')){
+			$accountType = $payment->getAdditionalInformation('account_type');
+			$accountType = ($accountType == "savings") ? "S" : (($accountType == "checking") ? "C" : $accountType);
 
-        if($payment->getAdditionalInformation('vault_token')){
-        	$expirydate = '';
-        	$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
-        }else{
-        	$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
-        }    
+			$requestData = array(
+				'appid' => $this->getConfigData('appid'),
+				'appkey' => $this->getConfigData('appkey'),
+				'epi' => $this->getConfigData('epi'),
+				'txn_type' => 'ACHDebit',
+				'account_number' => $payment->getAdditionalInformation('account_number'),
+				'routing_number' => $payment->getAdditionalInformation('routing_number'),
+				'payee_name' => $payment->getAdditionalInformation('name_on_account'),
+				'account_type'=> $accountType,
+				'entry_class'=> $payment->getAdditionalInformation('entry_class'),
+				'amount'=> $amount,
+				'phone' => $payment->getAdditionalInformation('phone'),
+				'email' => $payment->getAdditionalInformation('email'),
+				'state_tax'=>0,
+				'city_tax'=>0,
+				'reduced_tax'=>0
+
+			);
+
+			$response = $this->post_transaction($requestData);
+			$response_string = $response->msg;
+			$payment
+				->setTransactionId($response->document_id)
+				->setIsTransactionClosed(0);
+
+			$payment->setData('valor_rrn', $response->reference_number);
+			if (!empty($response->desc)) {
+				$payment->setData('valor_auth_code', $response->desc);
+				$response_string = sprintf(
+					/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Document Id, 5: Line Break, 6: Approval Code 7: Line Break 8: Reference Number. */
+					__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Document ID:</strong>  %4$s.%5$s <strong>Approval Code:</strong> %6$s.%7$s <strong>Reference Number:</strong> %8$s'),
+					"completed",
+					$order->getBaseCurrency()->formatTxt($amount),
+					"<br />",
+					$response->document_id,
+					"<br />",
+					$response->msg,
+					"<br />",
+					$response->reference_number
+					);
+			} else {
+				$payment->setData('valor_auth_code', $response->mesg);
+				$payment->setData('valor_ach_verification_status', $response->verification_status ?? '');
+				$response_string = sprintf(
+					/* translators: 1: Error Message, 2: Amount, 3: Line Break, 4: Document Id, 5: Line Break, 6: Approval Code 7: Line Break 8: Reference Number. */
+					__( 'ValorPos payment %1$s for %2$s.%3$s <strong>Approval Code:</strong> %4$s.%5$s <strong>Reference Number:</strong> %6$s'),
+					"is waiting for verification",
+					$order->getBaseCurrency()->formatTxt($amount),
+					"<br />",
+					$response->msg,
+					"<br />",
+					$response->reference_number
+					);
+			}
             
-            $requestData = array(
-		'appid' => $this->getConfigData('appid'),
-		'appkey' => $this->getConfigData('appkey'),
-		'epi' => $this->getConfigData('epi'),
-		'txn_type' => 'sale',
-		'ecomm_channel' => 'magento',
-		'amount' => $amount,
-		'sandbox' => $this->getConfigData('sandbox'),
-		'phone' => $billing->getTelephone(),
-		'email' => $order->getCustomerEmail(),
-		'uid' => $order->getIncrementId(),
-		'tax_amount' => $order->getBaseTaxAmount(),
-		'ip' => $this->_remoteAddress->getRemoteAddress(),
-		'surchargeIndicator' => $surchargeIndicator,
-		'surchargeAmount' => $surchargeAmount,
-		'address1' => $valor_avs_street,
-		'address2' => $billing->getStreetLine(2),
-		'city' => $billing->getCity(),
-		'state' => $billing->getRegion(),
-		'zip' => $valor_avs_zip,
-		'billing_country' => $billing->getCountryId(),
-		'shipping_country' => $shipping->getCountryId(),
-		'cardnumber' => $payment->getCcNumber(),
-		'status' => 'Y',
-		'cvv' => $payment->getCcCid(),
-		'cardholdername' => $billing->getName(),
-		'expirydate' => $expirydate,
-		'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
-		'token' => $payment->getAdditionalInformation('vault_token')
-            );
+            $order->addCommentToStatusHistory($response_string);
+			$this->_orderRepository->save($order);
+		}
+		else{
+			$surchargeIndicator  = $this->getConfigData('surchargeIndicator');
+	    
+			if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
+
+				$surchargeAmount = $this->get_surcharge_fee($order);
+
+				$amount = $amount - $surchargeAmount - $order->getBaseTaxAmount();
+
+				$payment_array = $this->_request->getParam('payment');
+
+			if( isset($payment_array["avs_zipcode"]) && strlen($payment_array["avs_zipcode"]) > 0 ) //if request post from admin then it work
+				$avs_zipcode = $payment_array["avs_zipcode"];
+			else
+				$avs_zipcode = $payment->getAdditionalInformation("avs_zipcode"); // if request post from front end then it work
+
+			if( isset($payment_array["avs_address"]) && strlen($payment_array["avs_address"]) > 0 )
+				$avs_address   = $payment_array["avs_address"];
+			else
+				$avs_address = $payment->getAdditionalInformation("avs_address");
+
+			$valor_avs_street = ($avs_address?$avs_address:$billing->getStreetLine(1));
+				$valor_avs_zip = ($avs_zipcode?$avs_zipcode:$billing->getPostcode());
+
+			if($payment->getAdditionalInformation('vault_token')){
+				$expirydate = '';
+				$payment->setData('cc_last_4', $payment->getAdditionalInformation('cc_last_4'));
+			}else{
+				$expirydate = sprintf('%02d',$payment->getCcExpMonth()).substr($payment->getCcExpYear(),2,2);
+			}
+
+				$requestData = array(
+			'appid' => $this->getConfigData('appid'),
+			'appkey' => $this->getConfigData('appkey'),
+			'epi' => $this->getConfigData('epi'),
+			'txn_type' => 'sale',
+			'ecomm_channel' => 'magento',
+			'amount' => $amount,
+			'sandbox' => $this->getConfigData('sandbox'),
+			'phone' => $billing->getTelephone(),
+			'email' => $order->getCustomerEmail(),
+			'uid' => $order->getIncrementId(),
+			'tax_amount' => $order->getBaseTaxAmount(),
+			'ip' => $this->_remoteAddress->getRemoteAddress(),
+			'surchargeIndicator' => $surchargeIndicator,
+			'surchargeAmount' => $surchargeAmount,
+			'address1' => $valor_avs_street,
+			'address2' => $billing->getStreetLine(2),
+			'city' => $billing->getCity(),
+			'state' => $billing->getRegion(),
+			'zip' => $valor_avs_zip,
+			'billing_country' => $billing->getCountryId(),
+			'shipping_country' => $shipping->getCountryId(),
+			'cardnumber' => $payment->getCcNumber(),
+			'status' => 'Y',
+			'cvv' => $payment->getCcCid(),
+			'cardholdername' => $billing->getName(),
+			'expirydate' => $expirydate,
+			'terms_checked' => $payment->getAdditionalInformation('terms_checked'),
+			'token' => $payment->getAdditionalInformation('vault_token')
+				);
             
             $response = $this->post_transaction($requestData);
 	    
@@ -437,6 +565,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
             
             $order->addCommentToStatusHistory($response_string);
 	    	$this->_orderRepository->save($order);
+
+		}
 
         } catch (\Exception $e) {
             if( isset($requestData) ) $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
