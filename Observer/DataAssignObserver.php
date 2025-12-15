@@ -27,5 +27,13 @@ class DataAssignObserver extends AbstractDataAssignObserver
                 $data->getDataByKey('transaction_result')
             );
         }
+
+        // Store payment method type for surcharge calculation
+        if ($data->getDataByKey('payment_method_type') !== null) {
+            $paymentInfo->setAdditionalInformation(
+                'payment_method_type',
+                $data->getDataByKey('payment_method_type')
+            );
+        }
     }
 }

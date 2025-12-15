@@ -38,11 +38,24 @@ class Payment extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
         $payment = $this->getOrder()->getPayment();
 	
         $response = [];
-        
-        if ($payment->getMethod() === "valorpay_gateway") {
-		$response['Transaction ID'] = $payment->getData('last_trans_id');
-		$response['Approval Code']  = $payment->getData('valor_auth_code');
-		$response['RRN']            = $payment->getData('valor_rrn');
+
+        if(null !== $payment->getAdditionalInformation('account_number')){
+            $account_number = $payment->getAdditionalInformation('account_number');
+            $routing_number = $payment->getAdditionalInformation('routing_number');
+            $masked_account_number = preg_replace('/\d(?=(?:.*\d){4})/', '*', $account_number);
+            $masked_routing_number = preg_replace('/\d(?=(?:.*\d){4})/', '*', $routing_number);
+            $valorAuthCode = $payment->getData('valor_auth_code');
+
+            $response['Approval Code'] = $valorAuthCode;
+            $response['Reference Number'] = $payment->getData('valor_rrn');
+            trim($valorAuthCode) === 'Waiting for file to be uploaded' ? $response['Verification Status'] = $payment->getData('valor_ach_verification_status') : $response['Document ID'] = $payment->getData('last_trans_id');
+            $response['Account Number'] = $masked_account_number;
+            $response['Routing Number'] = $masked_routing_number;
+        }
+        elseif ($payment->getMethod() === "valorpay_gateway") {
+            $response['Transaction ID'] = $payment->getData('last_trans_id');
+            $response['Approval Code']  = $payment->getData('valor_auth_code');
+            $response['RRN']            = $payment->getData('valor_rrn');
         }
         
         return $response;

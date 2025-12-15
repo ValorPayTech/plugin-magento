@@ -1,0 +1,30 @@
+<?php
+/** @var \Magento\Payment\Block\Info $block */
+$specificInfo = $block->getSpecificInformation();
+$paymentTitle = $block->getMethod()->getConfigData('title', $block->getInfo()->getOrder()->getStoreId());
+$method = $block->getInfo()->getMethod();
+?>
+
+<?= $block->escapeHtml($paymentTitle) ?>
+
+<?php if ($specificInfo) : ?>
+    <table class="data-table admin__table-secondary">
+        <?php foreach ($specificInfo as $label => $value) :
+
+            if (strtolower(trim($value)) === 'n/a' && strtolower(trim($label)) === 'credit card type' && $method === 'valorpay_gateway') {
+                $label = 'Payment Type';
+                $value = 'Valor ACH';
+            }
+
+        ?>
+            <tr>
+                <th><?= $block->escapeHtml($label) ?>:</th>
+                <td>
+                    <?= /* @noEscape */ nl2br($block->escapeHtml(implode("\n", $block->getValueAsArray($value, true)))) ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>
+
+<?= $block->getChildHtml() ?>

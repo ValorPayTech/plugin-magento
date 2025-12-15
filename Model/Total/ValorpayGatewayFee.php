@@ -110,6 +110,16 @@ class ValorpayGatewayFee extends AbstractTotal
            return (float)null;
         }
         
+        // Check if ACH payment method is selected - no surcharge for ACH
+        $paymentData = $quote->getPayment()->getAdditionalInformation();
+
+        if (isset($paymentData['payment_method_type']) && $paymentData['payment_method_type'] === 'ach') {
+            return (float)null;
+        }
+        if (!isset($paymentData['payment_method_type'])) {
+            return (float)null;
+        }
+
     	if( $this->surchargeType == "flatrate" ){
             
             // if($quote->getIsMultiShipping()){
