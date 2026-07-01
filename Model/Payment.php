@@ -55,6 +55,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
     protected $customerResource;
 	protected $customerRepoInterface;
 	protected $_adminCustomer;
+	protected $encryptor;
 
     protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
@@ -80,6 +81,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         \Magento\Customer\Model\ResourceModel\CustomerFactory $customerResource,
 		\Magento\Customer\Api\CustomerRepositoryInterface $customerRepoInterface,
 		\Magento\Sales\Block\Adminhtml\Order\Create\Form\Account $adminCustomer,
+		\Magento\Framework\Encryption\EncryptorInterface $encryptor,
         array $data = array()
     ) {
 		
@@ -121,6 +123,7 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
         $this->customerResource = $customerResource;
 		$this->customerRepoInterface = $customerRepoInterface;
 		$this->_adminCustomer = $adminCustomer;
+		$this->encryptor = $encryptor;
 
     }
     
@@ -208,8 +211,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 				'appkey' => $this->getConfigData('appkey'),
 				'epi' => $this->getConfigData('epi'),
 				'txn_type' => 'ACHDebit',
-				'account_number' => $payment->getAdditionalInformation('account_number'),
-				'routing_number' => $payment->getAdditionalInformation('routing_number'),
+				'account_number' => $this->decrypt($payment->getAdditionalInformation('account_number')),
+				'routing_number' => $this->decrypt($payment->getAdditionalInformation('routing_number')),
 				'payee_name' => $payment->getAdditionalInformation('name_on_account'),
 				'account_type'=> $accountType,
 				'entry_class'=> $payment->getAdditionalInformation('entry_class'),
@@ -425,8 +428,8 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
 				'appkey' => $this->getConfigData('appkey'),
 				'epi' => $this->getConfigData('epi'),
 				'txn_type' => 'ACHDebit',
-				'account_number' => $payment->getAdditionalInformation('account_number'),
-				'routing_number' => $payment->getAdditionalInformation('routing_number'),
+				'account_number' => $this->decrypt($payment->getAdditionalInformation('account_number')),
+				'routing_number' => $this->decrypt($payment->getAdditionalInformation('routing_number')),
 				'payee_name' => $payment->getAdditionalInformation('name_on_account'),
 				'account_type'=> $accountType,
 				'entry_class'=> $payment->getAdditionalInformation('entry_class'),
@@ -729,6 +732,19 @@ class Payment extends \ValorPay\CardPay\Model\Method\Cc
  
         return parent::isAvailable($quote);
     }
+
+	public function decrypt($value)
+	{
+		if (empty($value) || !preg_match('/^\d+:\d+:.+$/', $value)) {
+			return $value;
+		}
+		$decrypted = $this->encryptor->decrypt($value);
+
+		if (!empty($decrypted) && $decrypted !== $value && preg_match('/^\d+:\d+:.+$/', $decrypted)) {
+			$decrypted = $this->encryptor->decrypt($decrypted);
+		}
+		return (!empty($decrypted) && $decrypted !== $value) ? $decrypted : $value;
+	}
 
 	/**********************************************************************************************************/
 	/******************************** V A U L T  C O D E - S T A R T  H E R E *********************************/

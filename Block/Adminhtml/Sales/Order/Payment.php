@@ -13,21 +13,24 @@ namespace ValorPay\CardPay\Block\Adminhtml\Sales\Order;
  */
 class Payment extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {
-
+    protected $encryptor;
     /**
      * View constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Sales\Helper\Admin $adminHelper
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Sales\Helper\Admin $adminHelper,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         array $data
     ) {
         parent::__construct($context, $registry, $adminHelper, $data);
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -40,8 +43,11 @@ class Payment extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
         $response = [];
 
         if(null !== $payment->getAdditionalInformation('account_number')){
-            $account_number = $payment->getAdditionalInformation('account_number');
-            $routing_number = $payment->getAdditionalInformation('routing_number');
+            $raw_account = $payment->getAdditionalInformation('account_number');
+            $raw_routing = $payment->getAdditionalInformation('routing_number');
+
+            $account_number = $this->isEncrypted($raw_account) ? $this->encryptor->decrypt($raw_account) : $raw_account;
+            $routing_number = $this->isEncrypted($raw_routing) ? $this->encryptor->decrypt($raw_routing) : $raw_routing;
             $masked_account_number = preg_replace('/\d(?=(?:.*\d){4})/', '*', $account_number);
             $masked_routing_number = preg_replace('/\d(?=(?:.*\d){4})/', '*', $routing_number);
             $valorAuthCode = $payment->getData('valor_auth_code');
@@ -59,6 +65,14 @@ class Payment extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
         }
         
         return $response;
+    }
+
+    private function isEncrypted(?string $value): bool
+    {
+        if (empty($value)) {
+            return false;
+        }
+        return (bool) preg_match('/^\d+:\d+:.+$/', $value);
     }
 
     /**

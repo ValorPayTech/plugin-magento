@@ -14,6 +14,7 @@ class AddFeeToOrderObserver implements ObserverInterface
     protected $_request;
     protected $cardCollection;
     protected $scopeConfig;
+	protected $encryptor;
 
     public function __construct(
     
@@ -21,7 +22,8 @@ class AddFeeToOrderObserver implements ObserverInterface
     	\Magento\Framework\App\State $state,
     	\Magento\Framework\App\Request\Http $request,
 		\ValorPay\CardPay\Block\Vault\Cc $cardCollection,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+		\Magento\Framework\Encryption\EncryptorInterface $encryptor
 
     ) 
     {
@@ -31,6 +33,7 @@ class AddFeeToOrderObserver implements ObserverInterface
         $this->_request = $request;
         $this->cardCollection = $cardCollection;
 		$this->scopeConfig = $scopeConfig;
+		$this->encryptor = $encryptor;
     }
 	
     /**
@@ -62,6 +65,8 @@ class AddFeeToOrderObserver implements ObserverInterface
 					$achenabled = $this->scopeConfig->getValue('payment/valorpay_gateway/enable_ach', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
 					if( isset($paymentData) && count($paymentData) > 0 && $achenabled && !empty($paymentData['account_number'])) {
+						$paymentData['routing_number'] = $this->encrypt($paymentData['routing_number']);
+						$paymentData['account_number'] = $this->encrypt($paymentData['account_number']);
 						$paymentOrder->setAdditionalInformation('routing_number', $paymentData['routing_number']);
 						$paymentOrder->setAdditionalInformation('account_number', $paymentData['account_number']);
 						$paymentOrder->setAdditionalInformation('name_on_account', $paymentData['name_on_account']);
@@ -124,4 +129,10 @@ class AddFeeToOrderObserver implements ObserverInterface
 	
 	return $this;
     }
+
+	public function encrypt($password)
+	{
+		$encrypt =  $this->encryptor->encrypt($password);
+		return $encrypt;
+	}
 }
